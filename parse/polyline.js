@@ -1,5 +1,11 @@
 'use strict'
 
+/**
+ * @typedef {import("../types").createClient.Feature} Feature
+ * @typedef {import("../types").createClient.FeatureCollection} FeatureCollection
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
 const {decode} = require('google-polyline')
 const distance = require('gps-distance')
 
@@ -7,10 +13,13 @@ const distance = require('gps-distance')
 // todo: what is p.type?
 // todo: what is p.crdEncS?
 // todo: what is p.crdEncF?
+/** @type {DefaultProfile["parsePolyline"]} */
 const parsePolyline = (ctx, p) => { // p = raw polyline
+	/** @type {Array} */
 	const points = decode(p.crdEncYX)
 	if (points.length === 0) return null
 
+	/** @type {Array<Feature>} */
 	const res = points.map(([lat, lon]) => ({
 		type: 'Feature',
 		properties: {},

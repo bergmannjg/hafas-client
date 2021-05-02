@@ -1,5 +1,10 @@
 'use strict'
 
+/**
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
+/** @type {DefaultProfile["parseIcon"]} */
 const parseIcon = (ctx, i) => {
 	if (i.res === 'Empty') return null
 	const res = {

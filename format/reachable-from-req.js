@@ -1,5 +1,10 @@
 'use strict'
 
+/**
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
+/** @type {DefaultProfile["formatReachableFromReq"]} */
 const formatReachableFromReq = (ctx, address) => {
 	const {profile, opt} = ctx
 

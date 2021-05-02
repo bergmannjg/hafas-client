@@ -1,5 +1,10 @@
 'use strict'
 
+/**
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
+/** @type {DefaultProfile["formatLocation"]} */
 const formatLocation = (profile, l, name = 'location') => {
 	if ('string' === typeof l) return profile.formatStation(l)
 	if ('object' === typeof l && !Array.isArray(l)) {

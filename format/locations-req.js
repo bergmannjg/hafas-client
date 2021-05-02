@@ -1,5 +1,11 @@
 'use strict'
 
+/**
+ * @typedef {import("../types-private").createClientEx.ProfileEx} ProfileEx
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
+/** @type {DefaultProfile["formatLocationsReq"]} */
 const formatLocationsReq = (ctx, query) => {
 	const {profile, opt} = ctx
 

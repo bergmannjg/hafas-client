@@ -1,8 +1,12 @@
 'use strict'
 
+/**
+ * @typedef {import("../../types-private").createClientEx.ProfileEx} ProfileEx
+ */
 const baseProfile = require('./base.json')
 const products = require('./products')
 
+/** @type {Partial<ProfileEx>} */
 const sbbProfile = {
 	...baseProfile,
 	locale: 'de-CH',
@@ -18,7 +22,7 @@ const sbbProfile = {
 	reachableFrom: true,
 }
 
-const withLocale = (locale) => ({...sbbProfile, locale})
+const withLocale = (locale) => ({...sbbProfile, locale});
 
-sbbProfile.withLocale = withLocale
+/** @type{any} */(sbbProfile).withLocale = withLocale
 module.exports = sbbProfile

@@ -1,10 +1,18 @@
 'use strict'
 
+/**
+ * @typedef {import("../types").createClient.Journey} Journey
+ * @typedef {import("../types-private").createClientEx.ProfileEx} ProfileEx
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
 const {DateTime} = require('luxon')
 const findRemarks = require('./find-remarks')
 
+/** @param {ProfileEx} profile */
 const parseScheduledDays = (sDaysB, year, profile) => {
 	sDaysB = Buffer.from(sDaysB, 'hex')
+	/** @type {{[day: string]: boolean}} */
 	const res = Object.create(null)
 
 	let d = DateTime.fromObject({
@@ -31,10 +39,12 @@ const parseScheduledDays = (sDaysB, year, profile) => {
 // todo: c.isNotRdbl
 // todo: c.badSecRefX
 // todo: c.bfATS, c.bfIOSTS
+/** @type {DefaultProfile["parseJourney"]} */
 const parseJourney = (ctx, j) => { // j = raw jouney
 	const {profile, opt} = ctx
 
-	const legs = j.secL.map(l => profile.parseJourneyLeg(ctx, l, j.date))
+	const legs = (j.secL).map(l => profile.parseJourneyLeg(ctx, l, j.date))
+	/** @type {Journey} */
 	const res = {
 		type: 'journey',
 		legs,

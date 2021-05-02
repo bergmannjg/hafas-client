@@ -1,5 +1,10 @@
 'use strict'
 
+/**
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
+/** @type {DefaultProfile["formatRefreshJourneyReq"]} */
 const formatRefreshJourneyReq = (ctx, refreshToken) => {
 	// eslint-disable-next-line no-unused-vars
 	const {profile, opt} = ctx

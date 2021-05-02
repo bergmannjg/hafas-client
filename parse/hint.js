@@ -1,5 +1,10 @@
 'use strict'
 
+/**
+ * @typedef {import("../types").createClient.Hint} Hint
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
 const codesByIcon = Object.assign(Object.create(null), {
 	cancel: 'cancelled',
 	himWarn: 'disturbance',
@@ -25,6 +30,7 @@ const linkTypesByCode = Object.assign(Object.create(null), {
 // ]
 // todo: https://github.com/public-transport/hafas-client/issues/5
 // todo: expose h.type somehow
+/** @type {DefaultProfile["parseHint"]} */
 const parseHint = (ctx, h) => {
 	// todo: C
 

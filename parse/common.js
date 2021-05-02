@@ -1,5 +1,14 @@
 'use strict'
 
+/**
+ * @typedef {import("../types-private").createClientEx.ProfileEx} ProfileEx
+ * @typedef {import("../types-private").createClientEx.Options} Options
+ * @typedef {import("../types").createClient.Line} Line
+ * @typedef {import("../types").createClient.Station} Station
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ * @typedef {import("../types-raw-api").raw.RawCommon} RawCommon
+ */
+
 const omit = require('lodash/omit')
 const createFindInTree = require('../lib/find-in-tree');
 
@@ -12,9 +21,10 @@ const findInTree = createFindInTree([
 
 // there are circular references (e.g. warning -> loc -> warning)
 // todo: parse either on-the-fly or in a recursive/iterative process
+/** @type {DefaultProfile["parseCommon"]} */
 const parseCommonData = (_ctx) => {
 	const {profile, opt, res} = _ctx
-	const c = res.common || {}
+	const c = res.common || /** @type {RawCommon} */({})
 	const matches = findInTree(res)
 
 	const common = {}
@@ -36,9 +46,10 @@ const parseCommonData = (_ctx) => {
 		})
 	}
 
+	/** @type {Array<Line>} */
 	common.lines = []
 	if (Array.isArray(c.prodL)) {
-		common.lines = c.prodL.map(l => profile.parseLine(ctx, l))
+		common.lines = (c.prodL).map(l => profile.parseLine(ctx, l))
 
 		matches['**.prodX'].forEach(([idx, parents]) => {
 			if ('number' === typeof idx) parents[0].line = common.lines[idx]

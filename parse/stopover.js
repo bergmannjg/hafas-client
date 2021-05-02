@@ -1,7 +1,13 @@
 'use strict'
 
+/**
+ * @typedef {import("../types").createClient.StopOver} StopOver
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
 const findRemarks = require('./find-remarks')
 
+/** @type {DefaultProfile["parseStopover"]} */
 const parseStopover = (ctx, st, date) => { // st = raw stopover
 	const {profile, opt} = ctx
 
@@ -10,6 +16,7 @@ const parseStopover = (ctx, st, date) => { // st = raw stopover
 	const dep = profile.parseWhen(ctx, date, st.dTimeS, st.dTimeR, st.dTZOffset, st.dCncl)
 	const depPl = profile.parsePlatform(ctx, st.dPlatfS || (st.dPltfS && st.dPltfS.txt) || null, st.dPlatfR || (st.dPltfR && st.dPltfR.txt) || null, st.dCncl)
 
+	/** @type {StopOver} */
 	const res = {
 		stop: st.location || null,
 		arrival: arr.when,

@@ -1,5 +1,13 @@
 'use strict'
 
+/**
+ * @typedef {import("../types").createClient.Location} Location
+ * @typedef {import("../types").createClient.Station} Station
+ * @typedef {import("../types").createClient.Stop} Stop
+ * @typedef {import("../types-private").createClientEx.ProfileEx} ProfileEx
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
 const {parse} = require('qs')
 const get = require('lodash/get')
 
@@ -13,12 +21,17 @@ const leadingZeros = /^0+/
 // 	- `6733` for 8013074 with p/vmt
 // 	- `3933` for 8012092 with p/vmt
 // 	- `2062` for 8010168 with p/vmt
-const parseLocation = (ctx, l) => {
+/** @author Jürgen Bergmann
+ *  add paramter ...args */
+/** @type {DefaultProfile["parseLocation"]} */
+const parseLocation = (ctx, l, ...args) => {
 	const {profile, opt} = ctx
 
 	const lid = parse(l.lid, {delimiter: '@'})
+
+	/** @type {Location} */
 	const res = {
-		type: 'location',
+		type: /** @type {'location'} */('location'),
 		id: (l.extId || lid.L || '').replace(leadingZeros, '') || null
 	}
 
@@ -42,20 +55,21 @@ const parseLocation = (ctx, l) => {
 		.map(s => profile.parseLocation(ctx, s))
 		.filter(stop => !!stop)
 
+		/** @type {Station | Stop} */
 		const stop = {
-			type: l.isMainMast || subStops.length > 0 ? 'station' : 'stop',
+			type: /** @type {'station'|'stop'} */(l.isMainMast || subStops.length > 0 ? 'station' : 'stop'),
 			id: res.id,
 			name: l.name || lid.O ? profile.parseStationName(ctx, l.name || lid.O) : null,
 			location: 'number' === typeof res.latitude ? res : null // todo: remove `.id`
 		}
-		if (opt.subStops && subStops.length > 0) stop.stops = subStops
+		if (opt.subStops && subStops.length > 0) /** @type {Station} */(stop).stops = subStops
 
 		if ('pCls' in l) stop.products = profile.parseProductsBitmask(ctx, l.pCls)
 		if ('meta' in l) stop.isMeta = !!l.meta
 
 		const mMastLoc = locL[mMastLocX]
 		if (mMastLoc) {
-			stop.station = {
+			/** @type {Station} */(stop).station = {
 				...profile.parseLocation(ctx, mMastLoc),
 				type: 'station', // todo: this should be handled differently
 			}
@@ -67,12 +81,12 @@ const parseLocation = (ctx, l) => {
 			.filter(l => !!l)
 			.map(l => profile.parseLocation(ctx, l))
 			.filter(loc => !!loc)
-			.map(loc => loc.location)
+			.map(loc => /** @type Stop*/(loc).location)
 			if (entrances.length > 0) stop.entrances = entrances
 		}
 
 		if (opt.linesOfStops && Array.isArray(l.lines)) {
-			stop.lines = l.lines
+			/** @type {Stop} */(stop).lines = l.lines
 		}
 
 		const locHints = (l.remarkRefs || [])
@@ -93,8 +107,8 @@ const parseLocation = (ctx, l) => {
 
 		const dhid = (byType('stop-dhid') || {}).text
 		if (dhid) {
-			if (!stop.ids) stop.ids = {}
-			stop.ids.dhid = dhid
+			if (!/** @type {Stop} */(stop).ids) /** @type {Stop} */(stop).ids = {};
+			/** @type {Stop} */(stop).ids.dhid = dhid
 		}
 
 		const otherIds = hints
@@ -106,8 +120,8 @@ const parseLocation = (ctx, l) => {
 		})
 		.filter(([src]) => src !== 'NULL')
 		if (otherIds.length > 0) {
-			if (!stop.ids) stop.ids = {}
-			for (const [src, id] of otherIds) stop.ids[src] = id
+			if (!/** @type {Stop} */(stop).ids) /** @type {Stop} */(stop).ids = {}
+			for (const [src, id] of otherIds) /** @type {Stop} */(stop).ids[src] = id
 		}
 
 		return stop

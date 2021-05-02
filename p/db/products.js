@@ -1,10 +1,14 @@
 'use strict'
 
+/**
+ * @typedef {import("../../types").createClient.Products} Products
+ */
+
 // todo: https://gist.github.com/anonymous/d3323a5d2d6e159ed42b12afd0380434#file-haf_products-properties-L1-L95
 module.exports = [
 	{
 		id: 'nationalExpress',
-		mode: 'train',
+		mode:  /** @type {'train'} */('train'),
 		bitmasks: [1],
 		name: 'InterCityExpress',
 		short: 'ICE',
@@ -12,7 +16,7 @@ module.exports = [
 	},
 	{
 		id: 'national',
-		mode: 'train',
+		mode:  /** @type {'train'} */('train'),
 		bitmasks: [2],
 		name: 'InterCity & EuroCity',
 		short: 'IC/EC',
@@ -20,7 +24,7 @@ module.exports = [
 	},
 	{
 		id: 'regionalExp', // todo: rename
-		mode: 'train',
+		mode:  /** @type {'train'} */('train'),
 		bitmasks: [4],
 		name: 'RegionalExpress & InterRegio',
 		short: 'RE/IR',
@@ -28,7 +32,7 @@ module.exports = [
 	},
 	{
 		id: 'regional',
-		mode: 'train',
+		mode: /** @type {'train'} */('train'),
 		bitmasks: [8],
 		name: 'Regio',
 		short: 'RB',
@@ -36,7 +40,7 @@ module.exports = [
 	},
 	{
 		id: 'suburban',
-		mode: 'train',
+		mode:  /** @type {'train'} */('train'),
 		bitmasks: [16],
 		name: 'S-Bahn',
 		short: 'S',
@@ -44,7 +48,7 @@ module.exports = [
 	},
 	{
 		id: 'bus',
-		mode: 'bus',
+		mode:  /** @type {'bus'} */('bus'),
 		bitmasks: [32],
 		name: 'Bus',
 		short: 'B',
@@ -52,7 +56,7 @@ module.exports = [
 	},
 	{
 		id: 'ferry',
-		mode: 'watercraft',
+		mode:  /** @type {'watercraft'} */('watercraft'),
 		bitmasks: [64],
 		name: 'Ferry',
 		short: 'F',
@@ -60,7 +64,7 @@ module.exports = [
 	},
 	{
 		id: 'subway',
-		mode: 'train',
+		mode: /** @type {'train'} */('train'),
 		bitmasks: [128],
 		name: 'U-Bahn',
 		short: 'U',
@@ -68,7 +72,7 @@ module.exports = [
 	},
 	{
 		id: 'tram',
-		mode: 'train',
+		mode:  /** @type {'train'} */('train'),
 		bitmasks: [256],
 		name: 'Tram',
 		short: 'T',
@@ -76,7 +80,7 @@ module.exports = [
 	},
 	{
 		id: 'taxi',
-		mode: 'taxi',
+		mode:  /** @type {'taxi'} */('taxi'),
 		bitmasks: [512],
 		name: 'Group Taxi',
 		short: 'Taxi',

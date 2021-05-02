@@ -1,5 +1,10 @@
 'use strict'
 
+/**
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
+/** @type {DefaultProfile["formatRectangle"]} */
 const formatRectangle = (profile, north, west, south, east) => {
 	return {
 		llCrd: {

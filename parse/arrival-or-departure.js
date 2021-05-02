@@ -1,5 +1,12 @@
 'use strict'
 
+/**
+ * @typedef {import("../types").createClient.Alternative} Alternative
+ * @typedef {import("../types-private").createClientEx.ProfileEx} ProfileEx
+ * @typedef {import("../types-private").createClientEx.Context} Context
+ * @typedef {import("../types-raw-api").raw.RawJny} RawArrivalDeparture
+ */
+
 const findRemarks = require('./find-remarks')
 
 const ARRIVAL = 'a'
@@ -12,6 +19,10 @@ const DEPARTURE = 'd'
 const createParseArrOrDep = (prefix) => {
 	if (prefix !== ARRIVAL && prefix !== DEPARTURE) throw new Error('invalid prefix')
 
+	/**
+	 *  @param {Context} ctx
+	 *  @param {RawArrivalDeparture} d 
+	 */
 	const parseArrOrDep = (ctx, d) => { // d = raw arrival/departure
 		const {profile, opt} = ctx
 
@@ -22,6 +33,7 @@ const createParseArrOrDep = (prefix) => {
 		const plPlanned = d.stbStop[prefix + 'PlatfS'] || (d.stbStop[prefix + 'PltfS'] && d.stbStop[prefix + 'PltfS'].txt) || null
 		const plPrognosed = d.stbStop[prefix + 'PlatfR'] || (d.stbStop[prefix + 'PltfR'] && d.stbStop[prefix + 'PltfR'].txt) || null
 
+		/** @type {Alternative} */
 		const res = {
 			tripId: d.jid,
 			stop: d.stbStop.location || null,
@@ -48,7 +60,7 @@ const createParseArrOrDep = (prefix) => {
 
 		if (opt.stopovers && Array.isArray(d.stopL)) {
 			// Filter stations the train passes without stopping, as this doesn't comply with FPTF (yet).
-			const stopovers = d.stopL
+			const stopovers = (d.stopL)
 			.map(st => profile.parseStopover(ctx, st, d.date))
 			.filter(st => !st.passBy)
 			if (prefix === ARRIVAL) res.previousStopovers = stopovers

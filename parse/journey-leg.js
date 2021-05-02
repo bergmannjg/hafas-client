@@ -1,5 +1,12 @@
 'use strict'
 
+/**
+ * @typedef {import("../types").createClient.Leg} Leg
+ * @typedef {import("../types").createClient.Alternative} Alternative
+ * @typedef {import("../types-private").createClientEx.ProfileEx} ProfileEx
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
 const findRemarks = require('./find-remarks')
 
 const clone = obj => Object.assign({}, obj)
@@ -11,7 +18,7 @@ const addRemark = (stopoverOrLeg, remark) => {
 
 const applyRemarks = (leg, refs) => {
 	for (let [remark, ref] of findRemarks(refs)) {
-		const {fromLocation, toLocation} = ref
+		const { fromLocation, toLocation } = ref
 
 		let wholeLeg = true, fromI = 0, toI = 0
 		if (Array.isArray(leg.stopovers)) {
@@ -51,9 +58,11 @@ const applyRemarks = (leg, refs) => {
 // todo: pt.parJnyL (list of coupled trains)
 // todo: pt.planrtTS
 
+/** @type {DefaultProfile["parseJourneyLeg"]} */
 const parseJourneyLeg = (ctx, pt, date) => { // pt = raw leg
-	const {profile, opt} = ctx
+	const { profile, opt } = ctx
 
+	/** @type {Leg} */
 	const res = {
 		origin: clone(pt.dep.location) || null,
 		destination: clone(pt.arr.location)
@@ -112,7 +121,7 @@ const parseJourneyLeg = (ctx, pt, date) => { // pt = raw leg
 
 		if (opt.stopovers && pt.jny.stopL) {
 			const stopL = pt.jny.stopL
-			res.stopovers = stopL.map(s => profile.parseStopover(ctx, s, date))
+			res.stopovers = (stopL).map(s => profile.parseStopover(ctx, s, date))
 
 			if (opt.remarks && Array.isArray(pt.jny.msgL)) {
 				// todo: apply leg-wide remarks if `opt.stopovers` is false
@@ -123,6 +132,7 @@ const parseJourneyLeg = (ctx, pt, date) => { // pt = raw leg
 			res.stopovers = res.stopovers.filter((x) => !x.passBy)
 		}
 
+		/** @type {{jnyL: any[]; minC: any; maxC: any; numC: any}} */
 		const freq = pt.jny.freq || {}
 		// todo: expose `res.cycle` even if only one field exists (breaking)
 		if (freq.minC && freq.maxC) {
@@ -149,13 +159,13 @@ const parseJourneyLeg = (ctx, pt, date) => { // pt = raw leg
 					...when,
 				}
 			}
-			res.alternatives = freq.jnyL.map(parseAlternative)
+			res.alternatives = (freq.jnyL).map(parseAlternative)
 		}
 	}
 
 	if (pt.arr.aCncl || pt.dep.dCncl) {
 		res.cancelled = true
-		Object.defineProperty(res, 'canceled', {value: true})
+		Object.defineProperty(res, 'canceled', { value: true })
 	}
 
 	return res

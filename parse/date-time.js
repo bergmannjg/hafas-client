@@ -4,6 +4,11 @@ const {DateTime, FixedOffsetZone, IANAZone} = require('luxon')
 
 const timezones = new WeakMap()
 
+/**
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
+/** @type {DefaultProfile["parseDateTime"]} */
 const parseDateTime = ({profile}, date, time, tzOffset = null, timestamp = false) => {
 	const pDate = [date.substr(-8, 4), date.substr(-4, 2), date.substr(-2, 2)]
 	if (!pDate[0] || !pDate[1] || !pDate[2]) {

@@ -3,8 +3,10 @@
 	"description": "Client for HAFAS public transport APIs.",
 	"version": "5.16.0",
 	"main": "index.js",
+	"types": "index.d.ts",
 	"files": [
 		"index.js",
+		"index.d.ts",
 		"throttle.js",
 		"retry.js",
 		"lib",
@@ -63,6 +65,9 @@
 		"vbb-translate-ids": "^4.0.0"
 	},
 	"devDependencies": {
+		"@types/lodash": "^4.14.155",
+		"@types/luxon": "^1.24.0",
+		"@types/node": "^14.0.11",
 		"db-stations": "^3.0.0",
 		"eslint": "^7.0.0",
 		"is-coordinates": "^2.0.2",
@@ -70,6 +75,9 @@
 		"replayer": "^2.2.3",
 		"tap-spec": "^5.0.0",
 		"tape": "^5.0.0",
+		"tape-promise": "^4.0.0",
+		"typescript": "^4.2.4",
+		"typescript-coverage-report": "^0.4.0",
 		"validate-fptf": "^3.0.0",
 		"vbb-stations-autocomplete": "^4.1.0"
 	},
@@ -80,6 +88,7 @@
 		"test-integration:record": "VCR_MODE=record node test/e2e/index.js | tap-spec",
 		"test-e2e": "VCR_OFF=true node test/e2e/index.js | tap-spec",
 		"test": "npm run test-unit && npm run test-integration",
-		"prepublishOnly": "npm run lint && npm test"
+		"prepublishOnly": "npm run lint && npm test",
+		"tsc": "tsc"
 	}
 }

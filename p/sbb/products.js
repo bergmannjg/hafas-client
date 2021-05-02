@@ -1,9 +1,13 @@
 'use strict'
 
+/**
+ * @typedef {import("../../types").createClient.Products} Products
+ */
+
 module.exports = [
 	{
 		id: 'express-train',
-		mode: 'train',
+		mode: /** @type {'train'} */('train'),
 		bitmasks: [1],
 		name: 'ICE/EN/CNL/ES/RJ/TGV/THA',
 		short: 'ICE/TGV/RJ',
@@ -11,7 +15,7 @@ module.exports = [
 	},
 	{
 		id: 'international-train',
-		mode: 'train',
+		mode: /** @type {'train'} */('train'),
 		bitmasks: [2],
 		name: 'EC/IC/ICN/OEC',
 		short: 'EC/IC',
@@ -19,7 +23,7 @@ module.exports = [
 	},
 	{
 		id: 'interregional-train',
-		mode: 'train',
+		mode: /** @type {'train'} */('train'),
 		bitmasks: [4],
 		name: 'IR/PE',
 		short: 'IR',
@@ -27,7 +31,7 @@ module.exports = [
 	},
 	{
 		id: 'regional-express-train',
-		mode: 'train',
+		mode: /** @type {'train'} */('train'),
 		bitmasks: [8],
 		name: 'RE/D',
 		short: 'RE',
@@ -35,7 +39,7 @@ module.exports = [
 	},
 	{
 		id: 'watercraft',
-		mode: 'watercraft',
+		mode: /** @type {'watercraft'} */('watercraft'),
 		bitmasks: [16],
 		name: 'Schiff/Fähre/Dampfschiff',
 		short: 'Schiff',
@@ -43,7 +47,7 @@ module.exports = [
 	},
 	{
 		id: 'suburban-train',
-		mode: 'train',
+		mode: /** @type {'train'} */('train'),
 		bitmasks: [32],
 		name: 'S/SN/R/TER/RB',
 		short: 'S',
@@ -51,7 +55,7 @@ module.exports = [
 	},
 	{
 		id: 'bus-taxi',
-		mode: 'bus',
+		mode: /** @type {'bus'} */('bus'),
 		bitmasks: [64],
 		name: 'Bus/Taxi',
 		short: 'Bus',
@@ -59,7 +63,7 @@ module.exports = [
 	},
 	{
 		id: 'gondola',
-		mode: 'gondola',
+		mode: /** @type {'gondola'} */('gondola'),
 		// e.g. `FUN 13` ("Gurtenbahn") at Gurten Kulm (ID `8507099`)
 		bitmasks: [128],
 		name: 'Standseilbahn/Gondelbahn/Luftseilbahn/Sesselbahn',
@@ -68,7 +72,7 @@ module.exports = [
 	},
 	{
 		id: 'car-train',
-		mode: 'train',
+		mode: /** @type {'train'} */('train'),
 		bitmasks: [256], // todo: correct?
 		name: 'Autoreisezug/Extrazug',
 		short: 'ARZ/EXT',
@@ -76,7 +80,7 @@ module.exports = [
 	},
 	{
 		id: 'tram',
-		mode: 'train',
+		mode: /** @type {'train'} */('train'),
 		bitmasks: [512],
 		name: 'Tram/Metro',
 		short: 'Tram/Metro',

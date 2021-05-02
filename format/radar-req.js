@@ -1,5 +1,10 @@
 'use strict'
 
+/**
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
+/** @type {DefaultProfile["formatRadarReq"]} */
 const formatRadarReq = (ctx, north, west, south, east) => {
 	const {profile, opt} = ctx
 

@@ -1,5 +1,32 @@
 'use strict'
 
+/**
+ * @typedef {import("./types").createClient.HafasClient} HafasClient
+ * @typedef {import("./types").createClient.Profile} Profile
+ * @typedef {import("./types").createClient.Location} Location
+ * @typedef {import("./types").createClient.Station} Station
+ * @typedef {import("./types").createClient.Stop} Stop
+ * @typedef {import("./types").createClient.Line} Line
+ * @typedef {import("./types").createClient.Alternative} Alternative
+ * @typedef {import("./types").createClient.DeparturesArrivalsOptions} DeparturesArrivalsOptions
+ * @typedef {import("./types").createClient.JourneysOptions} JourneysOptions
+ * @typedef {import("./types").createClient.Journey} Journey
+ * @typedef {import("./types").createClient.Journeys} Journeys
+ * @typedef {import("./types").createClient.BoundingBox} BoundingBox  
+ * @typedef {import("./types").createClient.RefreshJourneyOptions} RefreshJourneyOptions 
+ * @typedef {import("./types").createClient.LocationsOptions} LocationsOptions 
+ * @typedef {import("./types").createClient.StopOptions} StopOptions
+ * @typedef {import("./types").createClient.NearByOptions} NearByOptions 
+ * @typedef {import("./types").createClient.TripOptions} TripOptions
+ * @typedef {import("./types").createClient.RadarOptions} RadarOptions 
+ * @typedef {import("./types").createClient.ReachableFromOptions} ReachableFromOptions
+ * @typedef {import("./types").createClient.TripsByNameOptions} TripsByNameOptions 
+ * @typedef {import("./types").createClient.RemarksOptions} RemarksOptions 
+ * @typedef {import("./types").createClient.LinesOptions} LinesOptions 
+ * @typedef {import("./types").createClient.ServerOptions} ServerOptions 
+ * @typedef {import("./types-private").createClientEx.ProfileEx} ProfileEx     
+ */
+
 const isObj = require('lodash/isObject')
 const sortBy = require('lodash/sortBy')
 const pRetry = require('p-retry')
@@ -11,6 +38,9 @@ const {INVALID_REQUEST} = require('./lib/errors')
 
 const isNonEmptyString = str => 'string' === typeof str && str.length > 0
 
+/**
+ * @param {Location} loc
+ */
 const validateLocation = (loc, name = 'location') => {
 	if (!isObj(loc)) {
 		throw new TypeError(name + ' must be an object.')
@@ -29,17 +59,32 @@ const validateWhen = (when, name = 'when') => {
 	}
 }
 
-const createClient = (profile, userAgent, opt = {}) => {
-	profile = Object.assign({}, defaultProfile, profile)
+/**
+ * 
+ * @param {Profile} commonProfile 
+ * @param {string} userAgent 
+ * @param {any} opt 
+ */
+const createClient = (commonProfile, userAgent, opt = {}) => {
+	/** @author Jürgen Bergmann
+	 *  commonProfile and profile have differnt types */
+	const profile = /** @type {ProfileEx} */(Object.assign({}, defaultProfile, commonProfile))
 	validateProfile(profile)
 
 	if ('string' !== typeof userAgent) {
 		throw new TypeError('userAgent must be a string');
 	}
 
+	/**
+	 * 
+	 * @param {string | Station} station
+	 * @param {(cty: any, s: any) => Alternative} parse
+	 * @param {DeparturesArrivalsOptions} opt 
+	 */
 	const _stationBoard = (station, type, parse, opt = {}) => {
-		if (isObj(station)) station = profile.formatStation(station.id)
-		else if ('string' === typeof station) station = profile.formatStation(station)
+		/** cast to other type of station */ 
+		if (isObj(station)) station = /** @type {any} */(profile.formatStation(/** @type {createClient.Station} */(station).id))
+		else if ('string' === typeof station) station = /** @type {any} */(profile.formatStation(station))
 		else throw new TypeError('station must be an object or a string.')
 
 		if ('string' !== typeof type || !type) {
@@ -53,7 +98,10 @@ const createClient = (profile, userAgent, opt = {}) => {
 			throw new Error('opt.includeRelatedStations is not supported by this endpoint')
 		}
 
-		opt = Object.assign({
+		/** @type {DeparturesArrivalsOptions} */
+		let target;
+		// eslint-disable-next-line no-unused-vars
+		opt = Object.assign(target = {
 			// todo: for arrivals(), this is actually a station it *has already* stopped by
 			direction: null, // only show departures stopping by this station
 			line: null, // filter by line ID
@@ -66,7 +114,7 @@ const createClient = (profile, userAgent, opt = {}) => {
 			stopovers: false, // fetch & parse previous/next stopovers?
 			// departures at related stations
 			// e.g. those that belong together on the metro map.
-			includeRelatedStations: true
+			includeRelatedStations: true,
 		}, opt)
 		opt.when = new Date(opt.when || Date.now())
 		if (Number.isNaN(+opt.when)) throw new Error('opt.when is invalid')
@@ -78,21 +126,37 @@ const createClient = (profile, userAgent, opt = {}) => {
 			if (!Array.isArray(res.jnyL)) return []
 
 			const ctx = {profile, opt, common, res}
-			return res.jnyL.map(res => parse(ctx, res))
-			.sort((a, b) => new Date(a.when) - new Date(b.when)) // todo
+			return (res.jnyL).map(res => parse(ctx, res))
+			.sort((a, b) => new Date(a.when).getDate() - new Date(b.when).getDate()) // todo
 		})
 	}
 
+	/**
+	 * 
+	 * @param {string | Station} station 
+	 * @param {DeparturesArrivalsOptions} opt 
+	 */
 	const departures = (station, opt = {}) => {
 		return _stationBoard(station, 'DEP', profile.parseDeparture, opt)
 	}
+	/**
+	 * 
+	 * @param {string | Station} station 
+	 * @param {DeparturesArrivalsOptions} opt 
+	 */
 	const arrivals = (station, opt = {}) => {
 		return _stationBoard(station, 'ARR', profile.parseArrival, opt)
 	}
 
+	/**
+	 * @param {string | Station | Location} from
+	 * @param {string | Station | Location} to
+     * @param {JourneysOptions | undefined} opt
+     */
 	const journeys = (from, to, opt = {}) => {
-		from = profile.formatLocation(profile, from, 'from')
-		to = profile.formatLocation(profile, to, 'to')
+		/** cast to other type of from and to */
+		from = /** @type {any} */(profile.formatLocation(profile, from, 'from'))
+		to = /** @type {any} */(profile.formatLocation(profile, to, 'to'))
 
 		if (('earlierThan' in opt) && ('laterThan' in opt)) {
 			throw new TypeError('opt.earlierThan and opt.laterThan are mutually exclusive.')
@@ -120,7 +184,10 @@ const createClient = (profile, userAgent, opt = {}) => {
 			journeysRef = opt.laterThan
 		}
 
-		opt = Object.assign({
+		/** @type {JourneysOptions} */
+		let target;
+		// eslint-disable-next-line no-unused-vars		
+		opt = Object.assign(target = {
 			results: null, // number of journeys – `null` means "whatever HAFAS returns"
 			via: null, // let journeys pass this station?
 			stopovers: false, // return stations on the way?
@@ -139,7 +206,8 @@ const createClient = (profile, userAgent, opt = {}) => {
 			remarks: true, // parse & expose hints & warnings?
 			scheduledDays: false
 		}, opt)
-		if (opt.via) opt.via = profile.formatLocation(profile, opt.via, 'opt.via')
+		/** cast to other type of opt.via */
+		if (opt.via) opt.via = /** @type {any} */(profile.formatLocation(profile, opt.via, 'opt.via'))
 
 		if (opt.when !== undefined) {
 			throw new Error('opt.when is not supported anymore. Use opt.departure/opt.arrival.')
@@ -215,11 +283,13 @@ const createClient = (profile, userAgent, opt = {}) => {
 			req: profile.transformJourneysQuery({profile, opt}, query)
 		})
 		.then(({res, common}) => {
-			if (!Array.isArray(res.outConL)) return []
+			/** @author Jürgen Bergmann
+			 *  return value is an object */
+			if (!Array.isArray(res.outConL)) return {}
 			// todo: outConGrpL
 
 			const ctx = {profile, opt, common, res}
-			const journeys = res.outConL
+			const journeys = (res.outConL)
 			.map(j => profile.parseJourney(ctx, j))
 
 			return {
@@ -231,12 +301,20 @@ const createClient = (profile, userAgent, opt = {}) => {
 		})
 	}
 
+	/**
+	 * 
+	 * @param {string} refreshToken 
+	 * @param {RefreshJourneyOptions} opt 
+	 */
 	const refreshJourney = (refreshToken, opt = {}) => {
 		if ('string' !== typeof refreshToken || !refreshToken) {
 			throw new TypeError('refreshToken must be a non-empty string.')
 		}
 
-		opt = Object.assign({
+		/** @type {RefreshJourneyOptions} */
+		let target;
+		// eslint-disable-next-line no-unused-vars
+		opt = Object.assign(target = {
 			stopovers: false, // return stations on the way?
 			tickets: false, // return tickets?
 			polylines: false, // return leg shapes? (not supported by all endpoints)
@@ -250,6 +328,7 @@ const createClient = (profile, userAgent, opt = {}) => {
 		return profile.request({profile, opt}, userAgent, req)
 		.then(({res, common}) => {
 			if (!Array.isArray(res.outConL) || !res.outConL[0]) {
+				/** @type {any}*/
 				const err = new Error('invalid response')
 				// technically this is not a HAFAS error
 				// todo: find a different flag with decent DX
@@ -262,11 +341,19 @@ const createClient = (profile, userAgent, opt = {}) => {
 		})
 	}
 
+	/**
+     * @param {string} query
+	 * @param {LocationsOptions | undefined} opt
+     */
 	const locations = (query, opt = {}) => {
 		if (!isNonEmptyString(query)) {
 			throw new TypeError('query must be a non-empty string.')
 		}
-		opt = Object.assign({
+
+		/** @type {LocationsOptions} */
+		let target;
+		// eslint-disable-next-line no-unused-vars
+		opt = Object.assign(target = {
 			fuzzy: true, // find only exact matches?
 			results: 5, // how many search results?
 			stops: true, // return stops/stations?
@@ -284,16 +371,25 @@ const createClient = (profile, userAgent, opt = {}) => {
 			if (!res.match || !Array.isArray(res.match.locL)) return []
 
 			const ctx = {profile, opt, common, res}
-			return res.match.locL.map(loc => profile.parseLocation(ctx, loc))
+			return (res.match.locL).map(loc => profile.parseLocation(ctx, loc))
 		})
 	}
 
+	/**
+	 * 
+	 * @param {string | Stop} stop 
+	 * @param {StopOptions} opt 
+	 */
 	const stop = (stop, opt = {}) => {
-		if ('object' === typeof stop) stop = profile.formatStation(stop.id)
-		else if ('string' === typeof stop) stop = profile.formatStation(stop)
+		/** cast to other type of stop */
+		if ('object' === typeof stop) stop = /** @type {any} */(profile.formatStation(stop.id))
+		else if ('string' === typeof stop) stop = /** @type {any} */(profile.formatStation(stop))
 		else throw new TypeError('stop must be an object or a string.')
 
-		opt = Object.assign({
+		/** @type {StopOptions} */
+		let target;
+		// eslint-disable-next-line no-unused-vars
+		opt = Object.assign(target = {
 			linesOfStops: false, // parse & expose lines at the stop/station?
 			subStops: true, // parse & expose sub-stops of stations?
 			entrances: true, // parse & expose entrances of stops/stations?
@@ -307,6 +403,7 @@ const createClient = (profile, userAgent, opt = {}) => {
 			if (!res || !Array.isArray(res.locL) || !res.locL[0]) {
 				// todo: proper stack trace?
 				// todo: DRY with lib/request.js
+				/** @type {any}*/
 				const err = new Error('response has no stop')
 				// technically this is not a HAFAS error
 				// todo: find a different flag with decent DX
@@ -320,10 +417,18 @@ const createClient = (profile, userAgent, opt = {}) => {
 		})
 	}
 
+	/**
+	 * 
+	 * @param {Location} location 
+	 * @param {NearByOptions} opt 
+	 */
 	const nearby = (location, opt = {}) => {
 		validateLocation(location, 'location')
 
-		opt = Object.assign({
+		/** @type {NearByOptions} */
+		let target;
+		// eslint-disable-next-line no-unused-vars
+		opt = Object.assign(target = {
 			results: 8, // maximum number of results
 			distance: null, // maximum walking distance in meters
 			poi: false, // return points of interest?
@@ -340,11 +445,17 @@ const createClient = (profile, userAgent, opt = {}) => {
 			if (!Array.isArray(res.locL)) return []
 
 			const ctx = {profile, opt, common, res}
-			const results = res.locL.map(loc => profile.parseNearby(ctx, loc))
+			const results = (res.locL).map(loc => profile.parseNearby(ctx, loc))
 			return Number.isInteger(opt.results) ? results.slice(0, opt.results) : results
 		})
 	}
 
+	/**
+	 * 
+	 * @param {string} id 
+	 * @param {string} lineName 
+	 * @param {TripOptions} opt 
+	 */
 	const trip = (id, lineName, opt = {}) => {
 		if (!isNonEmptyString(id)) {
 			throw new TypeError('id must be a non-empty string.')
@@ -352,7 +463,10 @@ const createClient = (profile, userAgent, opt = {}) => {
 		if (!isNonEmptyString(lineName)) {
 			throw new TypeError('lineName must be a non-empty string.')
 		}
-		opt = Object.assign({
+		/** @type {TripOptions} */
+		let target;
+		// eslint-disable-next-line no-unused-vars
+		opt = Object.assign(target = {
 			stopovers: true, // return stations on the way?
 			polyline: false, // return a track shape?
 			subStops: true, // parse & expose sub-stops of stations?
@@ -360,7 +474,7 @@ const createClient = (profile, userAgent, opt = {}) => {
 			remarks: true // parse & expose hints & warnings?
 		}, opt)
 
-		const req = profile.formatTripReq({profile, opt}, id, lineName)
+		const req = profile.formatTripReq({opt}, id, lineName)
 
 		return profile.request({profile, opt}, userAgent, req)
 		.then(({common, res}) => {
@@ -369,6 +483,11 @@ const createClient = (profile, userAgent, opt = {}) => {
 		})
 	}
 
+	/**
+	 * 
+	 * @param {string} lineNameOrFahrtNr 
+	 * @param {TripsByNameOptions} opt 
+	 */
 	const tripsByName = (lineNameOrFahrtNr, opt = {}) => {
 		if (!isNonEmptyString(lineNameOrFahrtNr)) {
 			throw new TypeError('lineNameOrFahrtNr must be a non-empty string.')
@@ -389,10 +508,15 @@ const createClient = (profile, userAgent, opt = {}) => {
 		})
 		.then(({res, common}) => {
 			const ctx = {profile, opt, common, res}
-			return res.jnyL.map(t => profile.parseTrip(ctx, t))
+			return (res.jnyL).map(t => profile.parseTrip(ctx, t))
 		})
 	}
 
+	/**
+	 * 
+	 * @param {BoundingBox} param0 
+	 * @param {RadarOptions} opt 
+	 */
 	const radar = ({north, west, south, east}, opt) => {
 		if ('number' !== typeof north) throw new TypeError('north must be a number.')
 		if ('number' !== typeof west) throw new TypeError('west must be a number.')
@@ -401,7 +525,10 @@ const createClient = (profile, userAgent, opt = {}) => {
 		if (north <= south) throw new Error('north must be larger than south.')
 		if (east <= west) throw new Error('east must be larger than west.')
 
-		opt = Object.assign({
+		/** @type {RadarOptions} */
+		let target;
+		// eslint-disable-next-line no-unused-vars
+		opt = Object.assign(target = {
 			results: 256, // maximum number of vehicles
 			duration: 30, // compute frames for the next n seconds
 			// todo: what happens with `frames: 0`?
@@ -421,15 +548,25 @@ const createClient = (profile, userAgent, opt = {}) => {
 			if (!Array.isArray(res.jnyL)) return []
 
 			const ctx = {profile, opt, common, res}
-			return res.jnyL.map(m => profile.parseMovement(ctx, m))
+			return (res.jnyL).map(m => profile.parseMovement(ctx, m))
 		})
 	}
 
+	/**
+	 * 
+	 * @param {Location} address 
+	 * @param {ReachableFromOptions} opt 
+	 */
 	const reachableFrom = (address, opt = {}) => {
 		validateLocation(address, 'address')
 
-		opt = Object.assign({
-			when: Date.now(),
+		/** @type {ReachableFromOptions} */
+		let target;
+		// eslint-disable-next-line no-unused-vars
+		opt = Object.assign(target = {
+			/** @author Jürgen Bergmann
+			 * Date.now() is no date */
+			when: new Date(Date.now()),
 			maxTransfers: 5, // maximum of 5 transfers
 			maxDuration: 20, // maximum travel duration in minutes, pass `null` for infinite
 			products: {},
@@ -445,6 +582,7 @@ const createClient = (profile, userAgent, opt = {}) => {
 			return profile.request({profile, opt}, userAgent, req)
 			.then(({res, common}) => {
 				if (!Array.isArray(res.posL)) {
+					/** @type {any}*/
 					const err = new Error('invalid response')
 					err.shouldRetry = true
 					throw err
@@ -453,6 +591,7 @@ const createClient = (profile, userAgent, opt = {}) => {
 				const byDuration = []
 				let i = 0, lastDuration = NaN
 				for (const pos of sortBy(res.posL, 'dur')) {
+					/** @type {Station | Stop | Location} */
 					const loc = common.locations[pos.locX]
 					if (!loc) continue
 					if (pos.dur !== lastDuration) {
@@ -477,6 +616,10 @@ const createClient = (profile, userAgent, opt = {}) => {
 		})
 	}
 
+	/**
+	 * 
+	 * @param {RemarksOptions} opt 
+	 */
 	const remarks = async (opt = {}) => {
 		opt = {
 			results: 100, // maximum number of remarks
@@ -507,6 +650,11 @@ const createClient = (profile, userAgent, opt = {}) => {
 		.map(w => profile.parseWarning(ctx, w))
 	}
 
+	/**
+	 * 
+	 * @param {string} query 
+	 * @param {LinesOptions} opt 
+	 */
 	const lines = async (query, opt = {}) => {
 		if (!isNonEmptyString(query)) {
 			throw new TypeError('query must be a non-empty string.')
@@ -519,10 +667,10 @@ const createClient = (profile, userAgent, opt = {}) => {
 
 		if (!Array.isArray(res.lineL)) return []
 		const ctx = {profile, opt, common, res}
-		return res.lineL.map(l => {
+		return (res.lineL).map(l => {
 			const parseDirRef = i => (res.common.dirL[i] || {}).txt || null
 			return {
-				...omit(l.line, ['id', 'fahrtNr']),
+				...omit(/** @type {Line} */(l.line), ['id', 'fahrtNr']),
 				id: l.lineId,
 				// todo: what is locX?
 				directions: Array.isArray(l.dirRefL)
@@ -535,6 +683,10 @@ const createClient = (profile, userAgent, opt = {}) => {
 		})
 	}
 
+	/**
+	 * 
+	 * @param {ServerOptions} opt 
+	 */
 	const serverInfo = async (opt = {}) => {
 		const {res, common} = await profile.request({profile, opt}, userAgent, {
 			meth: 'ServerInfo',
@@ -554,15 +706,8 @@ const createClient = (profile, userAgent, opt = {}) => {
 		}
 	}
 
-	const client = {
-		departures,
-		arrivals,
-		journeys,
-		locations,
-		stop,
-		nearby,
-		serverInfo,
-	}
+	/** @type {HafasClient} */
+	const client = {departures, arrivals, journeys, locations, stop, nearby, serverInfo}
 	if (profile.trip) client.trip = trip
 	if (profile.radar) client.radar = radar
 	if (profile.refreshJourney) client.refreshJourney = refreshJourney

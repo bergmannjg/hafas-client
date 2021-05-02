@@ -1,5 +1,10 @@
 'use strict'
 
+/**
+ * @typedef {import("../../types-private").createClientEx.ProfileEx} ProfileEx
+ * @typedef {import("../../types-raw-api").raw.RawGrid} RawGridL
+ */
+
 const trim = require('lodash/trim')
 const uniqBy = require('lodash/uniqBy')
 const slugg = require('slugg')
@@ -43,6 +48,7 @@ const slices = (n, arr) => {
 	}, initialState).slices
 }
 
+/** @param {RawGridL} g */
 const parseGrid = (g) => {
 	// todo: g.type, e.g. `S`
 	// todo: respect `g.itemL[].(col|row)`?
@@ -110,8 +116,11 @@ const parseLocWithDetails = ({parsed, common}, l) => {
 			rows: grid.rows.map(row => row.map(cell => cell && cell.text)),
 		})
 
+		/** @type RawGridL[] */
 		let grids = l.gridL
-		.map(grid => parseGrid(grid, common))
+		/** @author Jürgen Bergmann
+		 *  arg common removed */
+		.map(grid => parseGrid(grid))
 		.map(resolveCells)
 
 		const ausstattung = grids.find(g => slugg(g.title) === 'ausstattung')
@@ -453,6 +462,7 @@ const formatStation = (id) => {
 
 // todo: find option for absolute number of results
 
+/** @type {Partial<ProfileEx>} */
 const dbProfile = {
 	...baseProfile,
 	locale: 'de-DE',

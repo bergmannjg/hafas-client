@@ -1,10 +1,17 @@
 'use strict'
 
+/**
+ * @typedef {import("../types").createClient.Line} Line
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
 const slugg = require('slugg')
 
+/** @type {DefaultProfile["parseLine"]} */
 const parseLine = ({profile}, p) => {
 	if (!p) return null // todo: handle this upstream
 	const name = p.line || p.addName || p.name || null // wtf
+	/** @type {Line} */
 	const res = {
 		type: 'line',
 		// This is terrible, but FPTF demands an ID. Let's pray for HAFAS.
@@ -35,7 +42,7 @@ const parseLine = ({profile}, p) => {
 		}
 
 		// todo: what if `p.cls` is the sum of two bitmasks?
-		const product = byBitmask[parseInt(p.cls)]
+		const product = byBitmask[parseInt(/** @type {any} */(p.cls))]
 		res.mode = product && product.mode || null
 		res.product = product && product.id || null
 	}

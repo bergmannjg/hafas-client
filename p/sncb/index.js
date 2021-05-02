@@ -3,7 +3,11 @@
 const {readFileSync} = require('fs')
 const {join} = require('path')
 const {Agent} = require('https')
-const {strictEqual: eql} = require('assert')
+/** @author Jürgen Bergmann
+ *  explicit typing of eql assertion */
+const {strictEqual} = require('assert')
+/** @type { ( actual:string, expected: string, message?: string | Error) => asserts actual is string} */
+const eql = strictEqual
 const {parseHook} = require('../../lib/profile-hooks')
 const parseLine = require('../../parse/line')
 const baseProfile = require('./base.json')

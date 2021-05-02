@@ -1,5 +1,11 @@
 'use strict'
 
+/**
+ * @typedef {import("../types").createClient.Warning} Warning
+ * @typedef {import("../types-private").createClientEx.ProfileEx} ProfileEx
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
 const brToNewline = require('@derhuerst/br2nl')
 const omit = require('lodash/omit')
 
@@ -31,6 +37,7 @@ const parseMsgEvent = (ctx) => (e) => {
 	}
 }
 
+/** @type {DefaultProfile["parseWarning"]} */
 const parseWarning = (ctx, w) => {
 	const {profile, res: resp, common} = ctx
 
@@ -58,6 +65,7 @@ const parseWarning = (ctx, w) => {
 	const icon = w.icon || null
 	const type = icon && icon.type && typesByIcon[icon.type] || 'warning'
 
+	/** @type {Warning} */
 	const res = {
 		id: w.hid || null,
 		type,

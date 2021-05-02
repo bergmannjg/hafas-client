@@ -1,5 +1,10 @@
 'use strict'
 
+/**
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
+/** @type {DefaultProfile["formatRemarksReq"]} */
 const formatRemarksReq = (ctx) => {
 	const {profile, opt} = ctx
 

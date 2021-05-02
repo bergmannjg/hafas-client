@@ -1,9 +1,15 @@
 'use strict'
 
+/**
+ * @typedef {import("../types-private").createClientEx.ProfileEx} ProfileEx
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
 const isObj = require('lodash/isObject')
 
 const hasProp = (o, k) => Object.prototype.hasOwnProperty.call(o, k)
 
+/** @type {DefaultProfile["formatProductsFilter"]} */
 const formatProductsFilter = (ctx, filter) => {
 	if (!isObj(filter)) throw new TypeError('products filter must be an object')
 	const {profile} = ctx

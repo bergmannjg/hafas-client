@@ -1,6 +1,13 @@
 'use strict'
 
+/**
+ * @typedef {import("../types").createClient.Products} Products
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
+/** @type {DefaultProfile["parseProductsBitmask"]} */
 const parseBitmask = ({profile}, bitmask) => {
+	/** @type {Products} */
 	const res = {}
 	for (let product of profile.products) res[product.id] = false
 

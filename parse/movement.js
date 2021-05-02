@@ -1,20 +1,28 @@
 'use strict'
 
+/**
+ * @typedef {import("../types").createClient.Movement} Movement
+ * @typedef {import("../types-private").createClientEx.ProfileEx} ProfileEx
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
 // todo: what is m.dirGeo? maybe the speed?
 // todo: what is m.stopL?
 // todo: what is m.proc? wut?
 // todo: what is m.pos?
 // todo: what is m.ani.dirGeo[n]? maybe the speed?
 // todo: what is m.ani.proc[n]? wut?
+/** @type {DefaultProfile["parseMovement"]} */
 const parseMovement = (ctx, m) => { // m = raw movement
 	const {profile, opt} = ctx
 
+	/** @type {Movement} */
 	const res = {
 		direction: m.dirTxt ? profile.parseStationName(ctx, m.dirTxt) : null,
 		tripId: m.jid || null,
 		line: m.line || null,
 		location: m.pos ? {
-			type: 'location',
+			type: /** @type {'location'} */('location'),
 			latitude: m.pos.y / 1000000,
 			longitude: m.pos.x / 1000000
 		} : null,
@@ -32,7 +40,7 @@ const parseMovement = (ctx, m) => { // m = raw movement
 
 		if (Array.isArray(m.ani.mSec)) {
 			for (let i = 0; i < m.ani.mSec.length; i++) {
-				res.frames.push({
+				(res.frames).push({
 					origin: m.ani.fromLocations[i] || null,
 					destination: m.ani.toLocations[i] || null,
 					t: m.ani.mSec[i]

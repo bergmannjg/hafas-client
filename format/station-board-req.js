@@ -1,5 +1,10 @@
 'use strict'
 
+/**
+ * @typedef {import("../types-private").createClientEx.DefaultProfile} DefaultProfile
+ */
+
+/** @type {DefaultProfile["formatStationBoardReq"]} */
 const formatStationBoardReq = (ctx, station, type) => {
 	const {profile, opt} = ctx
 
