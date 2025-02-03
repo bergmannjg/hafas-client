@@ -1,4 +1,12 @@
+/**
+ * @import {Products} from "../types"
+ * @import {DefaultProfile} from "../types-private"
+ */
+
+/** @type {DefaultProfile["parseProductsBitmask"]} */
 const parseBitmask = ({profile}, bitmask) => {
+
+	/** @type {Products} */
 	const res = {};
 	for (let product of profile.products) {
 		res[product.id] = false;

@@ -4,8 +4,10 @@
 	"version": "6.3.5",
 	"type": "module",
 	"main": "index.js",
+	"types": "index.d.ts",
 	"files": [
 		"index.js",
+		"index.d.ts",
 		"throttle.js",
 		"retry.js",
 		"lib",
@@ -86,7 +88,8 @@
 		"test-integration:record": "VCR_MODE=record tap -t60 -j1 test/e2e/*.js",
 		"test-e2e": "VCR_OFF=true tap -t60 -j16 test/e2e/*.js",
 		"test": "npm run test-unit && npm run test-integration",
-		"prepublishOnly": "npm run lint && npm test"
+		"prepublishOnly": "npm run lint && npm test",
+		"tsc": "tsc"
 	},
 	"tap": {
 		"disable-coverage": true,

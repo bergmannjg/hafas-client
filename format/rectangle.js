@@ -1,3 +1,8 @@
+/**
+ * @import {DefaultProfile} from "../types-private"
+ */
+
+/** @type {DefaultProfile["formatRectangle"]} */
 const formatRectangle = (profile, north, west, south, east) => {
 	return {
 		llCrd: {

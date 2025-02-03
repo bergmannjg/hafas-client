@@ -1,3 +1,8 @@
+/**
+ * @import {DefaultProfile} from "../types-private"
+ */
+
+/** @type {DefaultProfile["formatLocationsReq"]} */
 const formatLocationsReq = (ctx, query) => {
 	const {profile, opt} = ctx;
 

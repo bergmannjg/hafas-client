@@ -1,3 +1,10 @@
+/**
+ * @import {Hint, RoutingMode, Journey, Leg, Station, Stop, Location, Alternative, Facilities, Ticket,
+ * 			ReisezentrumOpeningHours, JourneysOptions} from "../../types"
+ * @import {ProfileEx, Context, TicketExtraData, Parsed} from "../../types-private"
+ * @import {RawLoc, RawGrid, RawOutCon, RawSec} from "../../types-raw-api"
+ */
+
 import trim from 'lodash/trim.js';
 import uniqBy from 'lodash/uniqBy.js';
 import slugg from 'slugg';
@@ -20,10 +27,12 @@ import {formatLoyaltyCard} from './loyalty-cards.js';
 import {ageGroup, ageGroupFromAge} from './ageGroup.js';
 import {routingModes} from './routing-modes.js';
 
+/** @type {ProfileEx["transformReqBody"]} */
 const transformReqBody = (ctx, body) => {
 	const req = body.svcReqL[0] || {};
 
 	// see https://pastebin.com/qZ9WS3Cx
+	/** @type {RoutingMode} */
 	const rtMode = 'routingMode' in ctx.opt
 		? ctx.opt.routingMode
 		: routingModes.REALTIME;
@@ -50,6 +59,7 @@ const slices = (n, arr) => {
 	}, initialState).slices;
 };
 
+/** @param {RawGrid} g */
 const parseGrid = (g) => {
 	// todo: g.type, e.g. `S`
 	// todo: respect `g.itemL[].(col|row)`?
@@ -114,7 +124,11 @@ const parseReisezentrumÖffnungszeiten = (g) => {
 	return res;
 };
 
-const parseLocWithDetails = ({parsed, common}, l) => {
+/**
+ * @param {Context & Parsed<Location | Station | Stop>} param
+ * @param {RawLoc} l
+ */
+const parseLocWithDetails = ({parsed}, l) => {
 	if (!parsed) {
 		return parsed;
 	}
@@ -129,21 +143,27 @@ const parseLocWithDetails = ({parsed, common}, l) => {
 		});
 
 		let grids = l.gridL
-			.map(grid => parseGrid(grid, common))
+
+			/** @author Jürgen Bergmann
+		      *  arg common removed */
+			.map(grid => parseGrid(grid))
 			.map(resolveCells);
 
 		const ausstattung = grids.find(g => slugg(g.title) === 'ausstattung');
 		if (ausstattung) {
-			parsed.facilities = parseAusstattungGrid(ausstattung);
+			// eslint-disable-next-line @stylistic/no-extra-parens
+			parsed.facilities = /** @type {Facilities} */(/** @type {any} */(parseAusstattungGrid(ausstattung)));
 		}
 		const öffnungszeiten = grids.find(g => slugg(g.title) === 'offnungszeiten-reisezentrum');
 		if (öffnungszeiten) {
-			parsed.reisezentrumOpeningHours = parseReisezentrumÖffnungszeiten(öffnungszeiten);
+			// eslint-disable-next-line @stylistic/no-extra-parens
+			parsed.reisezentrumOpeningHours = /** @type {ReisezentrumOpeningHours} */(/** @type {any} */(parseReisezentrumÖffnungszeiten(öffnungszeiten)));
 		}
 
 		grids = without(grids, ausstattung, öffnungszeiten);
 		if (grids.length > 0) {
-			parsed.grids = grids;
+			// eslint-disable-next-line @stylistic/no-extra-parens
+			(/** @type {any} */(parsed)).grids = grids;
 		}
 	}
 
@@ -166,6 +186,10 @@ const parseLoadFactor = (opt, tcocL, tcocX) => {
 	return load && loadFactors[load.r] || null;
 };
 
+/**
+ * @param {Context & Parsed<Alternative>} param
+ * @param {import('../../types-raw-api').RawJny} d
+ */
 const parseArrOrDepWithLoadFactor = ({parsed, res, opt}, d) => {
 	if (d.stbStop.dTrnCmpSX && Array.isArray(d.stbStop.dTrnCmpSX.tcocX)) {
 		const load = parseLoadFactor(opt, res.common.tcocL || [], d.stbStop.dTrnCmpSX.tcocX);
@@ -176,6 +200,11 @@ const parseArrOrDepWithLoadFactor = ({parsed, res, opt}, d) => {
 	return parsed;
 };
 
+/**
+ * @param {JourneysOptions} opt
+ * @param {Boolean} refreshJourney
+ * @returns {import('../../types-raw-api').TrfReq}
+ */
 const trfReq = (opt, refreshJourney) => {
 	if ('age' in opt && 'ageGroup' in opt) {
 		throw new TypeError(`\
@@ -187,6 +216,7 @@ Pass in just opt.age, and the age group will calculated automatically.`);
 		? ageGroupFromAge(opt.age)
 		: opt.ageGroup;
 
+	/** @type {import('../../types-raw-api').TrfReq} */
 	const basicCtrfReq = {
 		jnyCl: opt.firstClass === true ? 1 : 2,
 		// todo [breaking]: support multiple travelers
@@ -211,6 +241,7 @@ Pass in just opt.age, and the age group will calculated automatically.`);
 	return basicCtrfReq;
 };
 
+/** @type {ProfileEx["transformJourneysQuery"]} */
 const transformJourneysQuery = ({opt}, query) => {
 	const filters = query.jnyFltrL;
 	if (opt.bike) {
@@ -221,8 +252,11 @@ const transformJourneysQuery = ({opt}, query) => {
 	return query;
 };
 
+/** @type {ProfileEx["formatRefreshJourneyReq"]} */
 const formatRefreshJourneyReq = (ctx, refreshToken) => {
 	const {profile, opt} = ctx;
+
+	/** @type {import("../../types-raw-api").ReconstructionRequest} */
 	const req = {
 		getIST: true,
 		getPasslist: Boolean(opt.stopovers),
@@ -252,20 +286,30 @@ const parseShpCtx = (addDataTicketInfo) => {
 };
 
 
+/**
+ * @param {Journey} journey
+*/
 const addDbOfferSelectionUrl = (journey, opt) => {
 
 	// if no ticket contains addData, we can't get the offer selection URL
-	if (journey.tickets.some((t) => t.addDataTicketInfo)) {
+	// eslint-disable-next-line @stylistic/no-extra-parens
+	if (journey.tickets.some((t) => /** @type {Ticket&TicketExtraData} */(t).addDataTicketInfo)) {
 		const endpoint = opt.language === 'de' ? 'dox' : 'eox';
 
 		journey.tickets.forEach((t) => {
-			const shpCtx = parseShpCtx(t.addDataTicketInfo);
+			// eslint-disable-next-line @stylistic/no-extra-parens
+			const shpCtx = parseShpCtx(/** @type {Ticket&TicketExtraData} */(t).addDataTicketInfo);
 			if (shpCtx) {
 				const url = new URL(`https://mobile.bahn.de/bin/mobil/query.exe/${endpoint}`);
 
 				url.searchParams.append('A.1', opt.age);
 				url.searchParams.append('E', 'F');
-				url.searchParams.append('E.1', opt.loyaltyCard ? formatLoyaltyCard(opt.loyaltyCard) : '0');
+
+				/** @author Jürgen Bergmann, add toString because formatLoyaltyCard returns a number */
+				url.searchParams.append('E.1', opt.loyaltyCard
+					? formatLoyaltyCard(opt.loyaltyCard)
+						.toString()
+					: '0');
 				url.searchParams.append('K', opt.firstClass ? '1' : '2');
 				url.searchParams.append('M', 'D');
 				url.searchParams.append('RT.1', 'E');
@@ -299,8 +343,16 @@ const addDbOfferSelectionUrl = (journey, opt) => {
 // 	product: 'bus',
 // 	operator: {type: 'operator', id: 'nahreisezug', name: 'Nahreisezug'}
 // }
+
+/**
+ * @param {Context & Parsed<import('../../index.js').Line>} param
+ * @param {import('../../types-raw-api').RawProd} l
+ */
 const parseLineWithAdditionalName = ({parsed}, l) => {
-	if (l.nameS && ['bus', 'tram', 'ferry'].includes(l.product)) {
+
+	/** @author Jürgen Bergmann
+	  *  changed l.product with parsed.product */
+	if (l.nameS && ['bus', 'tram', 'ferry'].includes(parsed.product)) {
 		parsed.name = l.nameS;
 	}
 	if (l.addName) {
@@ -312,6 +364,10 @@ const parseLineWithAdditionalName = ({parsed}, l) => {
 
 // todo: sotRating, conSubscr, isSotCon, showARSLink, sotCtxt
 // todo: conSubscr, showARSLink, useableTime
+/**
+ * @param {Journey} parsed
+ * @param {RawOutCon} raw
+*/
 const mutateToAddPrice = (parsed, raw) => {
 	parsed.price = null;
 	// todo: find cheapest, find discounts
@@ -349,6 +405,11 @@ const isFirstClassTicket = (addData, opt) => {
 	}
 };
 
+/**
+ * @param {Journey} parsed
+ * @param {JourneysOptions} opt
+ * @param {RawOutCon} j
+*/
 const mutateToAddTickets = (parsed, opt, j) => {
 	if (
 		j.trfRes
@@ -392,12 +453,20 @@ const mutateToAddTickets = (parsed, opt, j) => {
 	}
 };
 
+/**
+ * @param {Context & Parsed<Journey>} param
+ * @param {RawOutCon} raw
+ */
 const parseJourneyWithPriceAndTickets = ({parsed, opt}, raw) => {
 	mutateToAddPrice(parsed, raw);
 	mutateToAddTickets(parsed, opt, raw);
 	return parsed;
 };
 
+/**
+ * @param {Context & Parsed<Leg>} param
+ * @param {RawSec} raw
+ */
 const parseJourneyLegWithLoadFactor = ({parsed, res, opt}, raw) => {
 	const tcocX = raw.jny && raw.jny.dTrnCmpSX && raw.jny.dTrnCmpSX.tcocX;
 	if (Array.isArray(tcocX) && Array.isArray(res.common.tcocL)) {
@@ -610,6 +679,11 @@ const codesByText = Object.assign(Object.create(null), {
 	'platform change': 'changed platform', // todo: use dash, German variant
 });
 
+/**
+ * @param {Context & Parsed<Hint>} param
+ * @param {import('../../types-raw-api').RawRem} raw
+ * @returns {Hint}
+ */
 const parseHintByCode = ({parsed}, raw) => {
 	// plain-text hints used e.g. for stop metadata
 	if (raw.type === 'K') {

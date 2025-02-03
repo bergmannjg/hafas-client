@@ -8,6 +8,15 @@ import {INVALID_REQUEST} from './lib/errors.js';
 import {sliceLeg} from './lib/slice-leg.js';
 import {HafasError} from './lib/errors.js';
 
+/**
+ * @import {Profile, Location, Station, Stop, Line, Alternative, Departures, Arrivals, DeparturesArrivalsOptions,
+ * 			JourneysOptions, BoundingBox, StopOver, RefreshJourneyOptions, JourneysFromTripOptions, LocationsOptions,
+ * 			StopOptions, NearByOptions, TripOptions, RadarOptions, ReachableFromOptions, TripsByNameOptions,
+ * 			RemarksOptions, LinesOptions, ServerOptions} from "./types"
+ * @import {ProfileEx} from "./types-private"
+ * @import {Loc, JourneyMatchRequest} from "./types-raw-api"
+ */
+
 // background info: https://github.com/public-transport/hafas-client/issues/286
 const FORBIDDEN_USER_AGENTS = [
 	'my-awesome-program', // previously used in readme.md, p/*/readme.md & docs/*.md
@@ -17,6 +26,9 @@ const FORBIDDEN_USER_AGENTS = [
 
 const isNonEmptyString = str => 'string' === typeof str && str.length > 0;
 
+/**
+ * @param {Location} loc
+ */
 const validateLocation = (loc, name = 'location') => {
 	if (!isObj(loc)) {
 		throw new TypeError(name + ' must be an object.');
@@ -35,8 +47,18 @@ const validateWhen = (when, name = 'when') => {
 	}
 };
 
-const createClient = (profile, userAgent, opt = {}) => {
-	profile = Object.assign({}, defaultProfile, profile);
+/**
+ *
+ * @param {Profile} commonProfile
+ * @param {string} userAgent
+ * @param {any} opt
+ */
+const createClient = (commonProfile, userAgent, opt = {}) => {
+
+	/** @author Jürgen Bergmann
+	 *  commonProfile and profile have differnt types */
+	// eslint-disable-next-line @stylistic/no-extra-parens
+	const profile = /** @type {ProfileEx} */(/** @type {unknown} */(Object.assign({}, defaultProfile, commonProfile)));
 	validateProfile(profile);
 
 	if ('string' !== typeof userAgent) {
@@ -46,11 +68,21 @@ const createClient = (profile, userAgent, opt = {}) => {
 		throw new TypeError(`userAgent should tell the HAFAS API operators how to contact you. If you have copied "${userAgent}" value from the documentation, please adapt it.`);
 	}
 
-	const _stationBoard = async (station, type, resultsField, parse, opt = {}) => {
-		if (isObj(station)) {
-			station = profile.formatStation(station.id);
-		} else if ('string' === typeof station) {
-			station = profile.formatStation(station);
+	/**
+     * @param {string | Station | Stop | Location} _station
+     * @param {(cty: any, s: any) => Alternative} parse
+     * @param {DeparturesArrivalsOptions} opt
+     */
+	const _stationBoard = async (_station, type, resultsField, parse, opt = {}) => {
+
+		/** @author Jürgen Bergmann, cast to other type of station */
+		/** @type {Loc} */
+		let station;
+		if (isObj(_station)) {
+			// eslint-disable-next-line @stylistic/no-extra-parens
+			station = profile.formatStation(/** @type {Station | Stop | Location} */(_station).id);
+		} else if ('string' === typeof _station) {
+			station = profile.formatStation(_station);
 		} else {
 			throw new TypeError('station must be an object or a string.');
 		}
@@ -66,7 +98,10 @@ const createClient = (profile, userAgent, opt = {}) => {
 			throw new Error('opt.includeRelatedStations is not supported by this endpoint');
 		}
 
-		opt = Object.assign({
+		/** @type {DeparturesArrivalsOptions} */
+		let target;
+		// eslint-disable-next-line no-unused-vars
+		opt = Object.assign(target = {
 			// todo: for arrivals(), this is actually a station it *has already* stopped by
 			direction: null, // only show departures stopping by this station
 			line: null, // filter by line ID
@@ -95,7 +130,12 @@ const createClient = (profile, userAgent, opt = {}) => {
 			? res.jnyL
 			: [];
 		const results = jnyL.map(res => parse(ctx, res))
-			.sort((a, b) => new Date(a.when) - new Date(b.when)); // todo
+
+			/** @author Jürgen Bergmann, add getDate() */
+			.sort((a, b) => new Date(a.when)
+				.getDate()
+				- new Date(b.when)
+					.getDate()); // todo
 
 		return {
 			[resultsField]: results,
@@ -105,16 +145,40 @@ const createClient = (profile, userAgent, opt = {}) => {
 		};
 	};
 
+	/**
+	 * @param {string | Station | Stop | Location} station
+	 * @param {DeparturesArrivalsOptions} opt
+	 * @returns {Promise<Departures>}
+	 */
 	const departures = async (station, opt = {}) => {
-		return await _stationBoard(station, 'DEP', 'departures', profile.parseDeparture, opt);
-	};
-	const arrivals = async (station, opt = {}) => {
-		return await _stationBoard(station, 'ARR', 'arrivals', profile.parseArrival, opt);
+		// eslint-disable-next-line @stylistic/no-extra-parens
+		return /** @type {any} */(await _stationBoard(station, 'DEP', 'departures', profile.parseDeparture, opt));
 	};
 
-	const journeys = async (from, to, opt = {}) => {
-		from = profile.formatLocation(profile, from, 'from');
-		to = profile.formatLocation(profile, to, 'to');
+	/**
+	 * @param {string | Station | Stop | Location} station
+	 * @param {DeparturesArrivalsOptions} opt
+	 * @returns {Promise<Arrivals>}
+	 */
+	const arrivals = async (station, opt = {}) => {
+		// eslint-disable-next-line @stylistic/no-extra-parens
+		return /** @type {any} */(await _stationBoard(station, 'ARR', 'arrivals', profile.parseArrival, opt));
+	};
+
+	/**
+	 * @param {string | Station | Stop | Location} _from
+	 * @param {string | Station | Stop | Location} _to
+	 * @param {JourneysOptions | undefined} opt
+	 */
+	const journeys = async (_from, _to, opt = {}) => {
+
+		/** @author Jürgen Bergmann, cast to other type of from and to */
+
+		/** @type {Loc} */
+		let from = profile.formatLocation(profile, _from, 'from');
+
+		/** @type {Loc} */
+		let to = profile.formatLocation(profile, _to, 'to');
 
 		if ('earlierThan' in opt && 'laterThan' in opt) {
 			throw new TypeError('opt.earlierThan and opt.laterThan are mutually exclusive.');
@@ -142,7 +206,10 @@ const createClient = (profile, userAgent, opt = {}) => {
 			journeysRef = opt.laterThan;
 		}
 
-		opt = Object.assign({
+		/** @type {JourneysOptions} */
+		let target;
+		// eslint-disable-next-line no-unused-vars
+		opt = Object.assign(target = {
 			results: null, // number of journeys – `null` means "whatever HAFAS returns"
 			via: null, // let journeys pass this station?
 			stopovers: false, // return stations on the way?
@@ -162,7 +229,8 @@ const createClient = (profile, userAgent, opt = {}) => {
 			scheduledDays: false, // parse & expose dates each journey is valid on?
 		}, opt);
 		if (opt.via) {
-			opt.via = profile.formatLocation(profile, opt.via, 'opt.via');
+			// eslint-disable-next-line @stylistic/no-extra-parens
+			opt.via = /** @type {any} */(profile.formatLocation(profile, opt.via, 'opt.via'));
 		}
 
 		if (opt.when !== undefined) {
@@ -209,13 +277,15 @@ const createClient = (profile, userAgent, opt = {}) => {
 			});
 		}
 
+		/** @type {import('./types-raw-api').TripSearchRequest} */
 		const query = {
 			getPasslist: Boolean(opt.stopovers),
 			maxChg: opt.transfers,
 			minChgTime: opt.transferTime,
 			depLocL: [from],
 			viaLocL: opt.via
-				? [{loc: opt.via}]
+				// eslint-disable-next-line @stylistic/no-extra-parens
+				? [{loc: /** @type {Loc} */(/** @type {any} */((opt.via)))}]
 				: [],
 			arrLocL: [to],
 			jnyFltrL: filters,
@@ -269,12 +339,20 @@ const createClient = (profile, userAgent, opt = {}) => {
 		};
 	};
 
+	/**
+	 *
+	 * @param {string} refreshToken
+	 * @param {RefreshJourneyOptions} opt
+	 */
 	const refreshJourney = async (refreshToken, opt = {}) => {
 		if ('string' !== typeof refreshToken || !refreshToken) {
 			throw new TypeError('refreshToken must be a non-empty string.');
 		}
 
-		opt = Object.assign({
+		/** @type {RefreshJourneyOptions} */
+		let target;
+		// eslint-disable-next-line no-unused-vars
+		opt = Object.assign(target = {
 			stopovers: false, // return stations on the way?
 			tickets: false, // return tickets?
 			polylines: false, // return leg shapes? (not supported by all endpoints)
@@ -303,15 +381,24 @@ const createClient = (profile, userAgent, opt = {}) => {
 
 	// Although the DB Navigator app passes the *first* stopover of the trip
 	// (instead of the previous one), it seems to work with the previous one as well.
-	const journeysFromTrip = async (fromTripId, previousStopover, to, opt = {}) => {
+	/**
+	 * @param {string} fromTripId
+	 * @param {StopOver} previousStopover
+	 * @param {string | Station | Stop} _to
+	 * @param {JourneysFromTripOptions | undefined} opt
+	 */
+	const journeysFromTrip = async (fromTripId, previousStopover, _to, opt = {}) => {
 		if (!isNonEmptyString(fromTripId)) {
 			throw new Error('fromTripId must be a non-empty string.');
 		}
 
-		if ('string' === typeof to) {
-			to = profile.formatStation(to);
+		/** @author Jürgen Bergmann, cast to other type of station */
+		/** @type {Loc}*/
+		let to;
+		if ('string' === typeof _to) {
+			to = profile.formatStation(_to);
 		} else if (isObj(to) && (to.type === 'station' || to.type === 'stop')) {
-			to = profile.formatStation(to.id);
+			to = profile.formatStation(_to.id);
 		} else {
 			throw new Error('to must be a valid stop or station.');
 		}
@@ -320,15 +407,18 @@ const createClient = (profile, userAgent, opt = {}) => {
 			throw new Error('previousStopover must be an object.');
 		}
 
-		let prevStop = previousStopover.stop;
-		if (isObj(prevStop)) {
-			prevStop = profile.formatStation(prevStop.id);
-		} else if ('string' === typeof prevStop) {
-			prevStop = profile.formatStation(prevStop);
+		/** @author Jürgen Bergmann, cast to other type of station */
+		/** @type {Loc}*/
+		let prevStop;
+		if (isObj(previousStopover.stop)) {
+			prevStop = profile.formatStation(previousStopover.stop.id);
+		} else if ('string' === typeof previousStopover.stop) {
+			prevStop = profile.formatStation(previousStopover.stop);
 		} else {
 			throw new Error('previousStopover.stop must be a valid stop or station.');
 		}
 
+		/** @type {string|number}*/
 		let depAtPrevStop = previousStopover.departure || previousStopover.plannedDeparture;
 		if (!isNonEmptyString(depAtPrevStop)) {
 			throw new Error('previousStopover.(planned)departure must be a string');
@@ -353,13 +443,16 @@ const createClient = (profile, userAgent, opt = {}) => {
 		}, opt);
 
 		// make clear that `departure`/`arrival`/`when` are not supported
-		if (opt.departure) {
+		// eslint-disable-next-line @stylistic/no-extra-parens
+		if (/** @type {any} */(opt).departure) {
 			throw new Error('journeysFromTrip + opt.departure is not supported by HAFAS.');
 		}
-		if (opt.arrival) {
+		// eslint-disable-next-line @stylistic/no-extra-parens
+		if (/** @type {any} */(opt).arrival) {
 			throw new Error('journeysFromTrip + opt.arrival is not supported by HAFAS.');
 		}
-		if (opt.when) {
+		// eslint-disable-next-line @stylistic/no-extra-parens
+		if (/** @type {any} */(opt).when) {
 			throw new Error('journeysFromTrip + opt.when is not supported by HAFAS.');
 		}
 
@@ -446,11 +539,19 @@ const createClient = (profile, userAgent, opt = {}) => {
 		};
 	};
 
+	/**
+	 * @param {string} query
+	 * @param {LocationsOptions | undefined} opt
+	 */
 	const locations = async (query, opt = {}) => {
 		if (!isNonEmptyString(query)) {
 			throw new TypeError('query must be a non-empty string.');
 		}
-		opt = Object.assign({
+
+		/** @type {LocationsOptions} */
+		let target;
+		// eslint-disable-next-line no-unused-vars
+		opt = Object.assign(target = {
 			fuzzy: true, // find only exact matches?
 			results: 5, // how many search results?
 			stops: true, // return stops/stations?
@@ -472,16 +573,28 @@ const createClient = (profile, userAgent, opt = {}) => {
 		return res.match.locL.map(loc => profile.parseLocation(ctx, loc));
 	};
 
-	const stop = async (stop, opt = {}) => {
-		if ('object' === typeof stop) {
-			stop = profile.formatStation(stop.id);
-		} else if ('string' === typeof stop) {
-			stop = profile.formatStation(stop);
+	/**
+	 *
+	 * @param {string | Stop} _stop
+	 * @param {StopOptions} opt
+	 */
+	const stop = async (_stop, opt = {}) => {
+
+		/** @author Jürgen Bergmann, cast to other type of stop */
+		/** @type {Loc} */
+		let stop;
+		if ('object' === typeof _stop) {
+			stop = profile.formatStation(_stop.id);
+		} else if ('string' === typeof _stop) {
+			stop = profile.formatStation(_stop);
 		} else {
 			throw new TypeError('stop must be an object or a string.');
 		}
 
-		opt = Object.assign({
+		/** @type {StopOptions} */
+		let target;
+		// eslint-disable-next-line no-unused-vars
+		opt = Object.assign(target = {
 			linesOfStops: false, // parse & expose lines at the stop/station?
 			subStops: true, // parse & expose sub-stops of stations?
 			entrances: true, // parse & expose entrances of stops/stations?
@@ -502,10 +615,18 @@ const createClient = (profile, userAgent, opt = {}) => {
 		return profile.parseLocation(ctx, res.locL[0]);
 	};
 
+	/**
+	 *
+	 * @param {Location} location
+	 * @param {NearByOptions} opt
+	 */
 	const nearby = async (location, opt = {}) => {
 		validateLocation(location, 'location');
 
-		opt = Object.assign({
+		/** @type {NearByOptions} */
+		let target;
+		// eslint-disable-next-line no-unused-vars
+		opt = Object.assign(target = {
 			results: 8, // maximum number of results
 			distance: null, // maximum walking distance in meters
 			poi: false, // return points of interest?
@@ -530,6 +651,11 @@ const createClient = (profile, userAgent, opt = {}) => {
 			: results;
 	};
 
+	/**
+	 *
+	 * @param {string} id
+	 * @param {TripOptions} opt
+	 */
 	const trip = async (id, opt = {}) => {
 		if (!isNonEmptyString(id)) {
 			throw new TypeError('id must be a non-empty string.');
@@ -558,6 +684,11 @@ const createClient = (profile, userAgent, opt = {}) => {
 		};
 	};
 
+	/**
+	 *
+	 * @param {string} lineNameOrFahrtNr
+	 * @param {TripsByNameOptions} opt
+	 */
 	// todo [breaking]: rename to trips()?
 	const tripsByName = async (lineNameOrFahrtNr = '*', opt = {}) => {
 		if (!isNonEmptyString(lineNameOrFahrtNr)) {
@@ -574,6 +705,7 @@ const createClient = (profile, userAgent, opt = {}) => {
 			additionalFilters: [], // undocumented
 		}, opt);
 
+		/** @type {JourneyMatchRequest} */
 		const req = {
 			// fields: https://github.com/marudor/BahnhofsAbfahrten/blob/f619e754f212980261eb7e2b151cd73ba0213da8/packages/types/HAFAS/JourneyMatch.ts#L4-L23
 			input: lineNameOrFahrtNr,
@@ -645,6 +777,11 @@ const createClient = (profile, userAgent, opt = {}) => {
 		};
 	};
 
+	/**
+	 *
+	 * @param {BoundingBox} param
+	 * @param {RadarOptions} opt
+	 */
 	const radar = async ({north, west, south, east}, opt) => {
 		if ('number' !== typeof north) {
 			throw new TypeError('north must be a number.');
@@ -670,7 +807,10 @@ const createClient = (profile, userAgent, opt = {}) => {
 			throw new Error('bbox.east must not be equal to bbox.west.');
 		}
 
-		opt = Object.assign({
+		/** @type {RadarOptions} */
+		let target;
+		// eslint-disable-next-line no-unused-vars
+		opt = Object.assign(target = {
 			results: 256, // maximum number of vehicles
 			duration: 30, // compute frames for the next n seconds
 			// todo: what happens with `frames: 0`?
@@ -703,11 +843,22 @@ const createClient = (profile, userAgent, opt = {}) => {
 		};
 	};
 
+	/**
+	 *
+	 * @param {Location} address
+	 * @param {ReachableFromOptions} opt
+	 */
 	const reachableFrom = async (address, opt = {}) => {
 		validateLocation(address, 'address');
 
-		opt = Object.assign({
-			when: Date.now(),
+		/** @type {ReachableFromOptions} */
+		let target;
+		// eslint-disable-next-line no-unused-vars
+		opt = Object.assign(target = {
+
+			/** @author Jürgen Bergmann
+			 * Date.now() is no date */
+			when: new Date(Date.now()),
 			maxTransfers: 5, // maximum of 5 transfers
 			maxDuration: 20, // maximum travel duration in minutes, pass `null` for infinite
 			products: {},
@@ -758,6 +909,10 @@ const createClient = (profile, userAgent, opt = {}) => {
 		};
 	};
 
+	/**
+	 *
+	 * @param {RemarksOptions} opt
+	 */
 	const remarks = async (opt = {}) => {
 		opt = {
 			results: 100, // maximum number of remarks
@@ -795,6 +950,11 @@ const createClient = (profile, userAgent, opt = {}) => {
 		};
 	};
 
+	/**
+	 *
+	 * @param {string} query
+	 * @param {LinesOptions} opt
+	 */
 	const lines = async (query, opt = {}) => {
 		if (!isNonEmptyString(query)) {
 			throw new TypeError('query must be a non-empty string.');
@@ -812,7 +972,8 @@ const createClient = (profile, userAgent, opt = {}) => {
 		const lines = res.lineL.map(l => {
 			const parseDirRef = i => (res.common.dirL[i] || {}).txt || null;
 			return {
-				...omit(l.line, ['id', 'fahrtNr']),
+				// eslint-disable-next-line @stylistic/no-extra-parens
+				...omit(/** @type {Line} */(l.line), ['id', 'fahrtNr']),
 				id: l.lineId,
 				// todo: what is locX?
 				directions: Array.isArray(l.dirRefL)
@@ -832,6 +993,10 @@ const createClient = (profile, userAgent, opt = {}) => {
 		};
 	};
 
+	/**
+	 *
+	 * @param {ServerOptions} opt
+	 */
 	const serverInfo = async (opt = {}) => {
 		opt = {
 			versionInfo: true, // query HAFAS versions?

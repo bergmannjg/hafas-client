@@ -1,3 +1,8 @@
+/**
+ * @import {DefaultProfile} from "../types-private"
+ */
+
+/** @type {DefaultProfile["formatNearbyReq"]} */
 const formatNearbyReq = (ctx, location) => {
 	const {profile, opt} = ctx;
 

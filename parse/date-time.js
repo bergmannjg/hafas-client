@@ -1,6 +1,10 @@
 import {DateTime, FixedOffsetZone, IANAZone} from 'luxon';
 import {luxonIANAZonesByProfile as timezones} from '../lib/luxon-timezones.js';
 
+/**
+ * @import {DefaultProfile} from "../types-private"
+ */
+
 const parseDaysOffset = (_, time) => {
 	return time.length > 6
 		? parseInt(time.slice(0, -6))

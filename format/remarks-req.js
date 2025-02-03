@@ -1,3 +1,8 @@
+/**
+ * @import {DefaultProfile} from "../types-private"
+ */
+
+/** @type {DefaultProfile["formatRemarksReq"]} */
 const formatRemarksReq = (ctx) => {
 	const {profile, opt} = ctx;
 
@@ -7,6 +12,7 @@ const formatRemarksReq = (ctx) => {
 		himFltrL.push(profile.formatProductsFilter(ctx, opt.products));
 	}
 
+	/** @type {import("../types-raw-api").HimSearchRequest} */
 	const req = {
 		himFltrL,
 	};

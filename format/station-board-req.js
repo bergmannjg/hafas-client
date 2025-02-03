@@ -1,3 +1,8 @@
+/**
+ * @import {DefaultProfile} from "../types-private"
+ */
+
+/** @type {DefaultProfile["formatStationBoardReq"]} */
 const formatStationBoardReq = (ctx, station, type) => {
 	const {profile, opt} = ctx;
 
@@ -8,6 +13,7 @@ const formatStationBoardReq = (ctx, station, type) => {
 		jnyFltrL.push({type: 'LINEID', mode: 'INC', value: opt.line});
 	}
 
+	/** @type {import("../types-raw-api").StationBoardRequest} */
 	const req = {
 		type,
 		date: profile.formatDate(profile, opt.when),

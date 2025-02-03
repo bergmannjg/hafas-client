@@ -1,12 +1,19 @@
+/**
+ * @import {Movement} from "../types"
+ * @import {DefaultProfile} from "../types-private"
+ */
+
 // todo: what is m.dirGeo? maybe the speed?
 // todo: what is m.stopL?
 // todo: what is m.proc? wut?
 // todo: what is m.pos?
 // todo: what is m.ani.dirGeo[n]? maybe the speed?
 // todo: what is m.ani.proc[n]? wut?
+/** @type {DefaultProfile["parseMovement"]} */
 const parseMovement = (ctx, m) => { // m = raw movement
 	const {profile, opt} = ctx;
 
+	/** @type {Movement} */
 	const res = {
 		direction: m.dirTxt
 			? profile.parseStationName(ctx, m.dirTxt)
@@ -15,7 +22,7 @@ const parseMovement = (ctx, m) => { // m = raw movement
 		line: m.line || null,
 		location: m.pos
 			? {
-				type: 'location',
+				type: /** @type {'location'} */('location'), // eslint-disable-line @stylistic/no-extra-parens
 				latitude: m.pos.y / 1000000,
 				longitude: m.pos.x / 1000000,
 			}

@@ -1,0 +1,29 @@
+name: test types
+
+on: 
+  push:
+    branches: [ add-types-in-jsdoc ]
+
+jobs:
+  
+  build:
+    
+    runs-on: ubuntu-latest
+
+    steps:
+      
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: add-types-in-jsdoc 
+      
+      - name: setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - run: npm install
+      
+      - run: npm run tsc
+      - run: npm run lint
+      - run: npm run test-unit

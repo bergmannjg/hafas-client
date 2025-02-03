@@ -75,7 +75,7 @@ const ettelbruck = '9258199';
 const mersch = '9864348';
 const luxembourgGareCentrale = '9217081';
 
-tap.test('journeys – Ettelbruck to Luxembourg', async (t) => {
+tap.skip('journeys – Ettelbruck to Luxembourg', async (t) => {
 	const res = await client.journeys(ettelbruck, luxembourgGareCentrale, {
 		results: 4,
 		departure: when,

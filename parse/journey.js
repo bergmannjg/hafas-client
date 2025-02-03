@@ -1,5 +1,11 @@
 import {findRemarks} from './find-remarks.js';
 
+/**
+ * @import {Journey} from "../types"
+ * @import {DefaultProfile} from "../types-private"
+ */
+
+
 // todo: c.conSubscr (e.g. `F`)
 // todo: c.trfRes x vbb-parse-ticket
 // todo: c.sotRating, c.isSotCon, c.sotCtxt
@@ -11,7 +17,7 @@ import {findRemarks} from './find-remarks.js';
 // todo: c.bfATS, c.bfIOSTS
 // todo: c.recState (e.g. `U`)
 // todo: c.intvlSubscr (e.g. `F`)
-
+/** @type {DefaultProfile["parseJourney"]} */
 const parseJourney = (ctx, j) => { // j = raw jouney
 	const {profile, opt} = ctx;
 
@@ -37,6 +43,7 @@ const parseJourney = (ctx, j) => { // j = raw jouney
 		legs.push(leg);
 	}
 
+	/** @type {Journey} */
 	const res = {
 		type: 'journey',
 		legs,

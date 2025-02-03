@@ -1,3 +1,8 @@
+/**
+ * @import {DefaultProfile} from "../types-private"
+ */
+
+/** @type {DefaultProfile["formatTripReq"]} */
 const formatTripReq = ({opt}, id) => {
 	return {
 		cfg: {polyEnc: 'GPA'},

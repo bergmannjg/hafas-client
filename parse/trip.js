@@ -2,10 +2,17 @@ import minBy from 'lodash/minBy.js';
 import maxBy from 'lodash/maxBy.js';
 import last from 'lodash/last.js';
 
+/**
+ * @import {DefaultProfile} from "../types-private"
+ * @import {RawSec} from "../types-raw-api"
+*/
+
+/** @type {DefaultProfile["parseTrip"]} */
 const parseTrip = (ctx, t) => { // t = raw trip
 	const {profile, opt} = ctx;
 
 	// pretend the trip is a leg in a journey
+	/** @type RawSec */
 	const fakeLeg = {
 		type: 'JNY',
 		dep: Array.isArray(t.stopL)
@@ -22,6 +29,7 @@ const parseTrip = (ctx, t) => { // t = raw trip
 	const today = () => profile.formatDate(profile, Date.now());
 	const date = t.date || today();
 
+	/** @type {any} */
 	const trip = profile.parseJourneyLeg(ctx, fakeLeg, date);
 	trip.id = trip.tripId;
 	delete trip.tripId;

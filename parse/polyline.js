@@ -1,6 +1,10 @@
 import _googlePolyline from 'google-polyline';
 import distance from 'gps-distance';
 
+/**
+ * @import {Feature} from "../types"
+ */
+
 const {decode} = _googlePolyline;
 
 // todo: what is p.delta?
@@ -10,11 +14,14 @@ const {decode} = _googlePolyline;
 // todo: what is p.crdEncDist? likely each point's distance to the previous point
 // todo: what is p.crdEncZ? altitude?
 const parsePolyline = (ctx, p) => { // p = raw polyline
+
+	/** @type {Array} */
 	const points = decode(p.crdEncYX);
 	if (points.length === 0) {
 		return null;
 	}
 
+	/** @type {Array<Feature>} */
 	const res = points.map(([lat, lon]) => ({
 		type: 'Feature',
 		properties: {},

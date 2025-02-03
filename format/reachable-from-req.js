@@ -1,3 +1,8 @@
+/**
+ * @import {DefaultProfile} from "../types-private"
+ */
+
+/** @type {DefaultProfile["formatReachableFromReq"]} */
 const formatReachableFromReq = (ctx, address) => {
 	const {profile, opt} = ctx;
 

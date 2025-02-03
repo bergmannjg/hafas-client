@@ -1,3 +1,7 @@
+/**
+ * @import {DefaultProfile} from "../types-private"
+ */
+
 const codesByIcon = Object.assign(Object.create(null), {
 	cancel: 'cancelled',
 	himWarn: 'disturbance',
@@ -113,6 +117,7 @@ const linkTypesByCode = Object.assign(Object.create(null), {
 // todo bvg:
 // {"type": "R", "code": "text.realtime.journey.cancelled", "icoX": 7, "txtN": ": S41"} with icon {"res": "rt_cancel"}
 
+/** @type {DefaultProfile["parseHint"]} */
 const parseHint = (ctx, h) => {
 	// todo: C
 

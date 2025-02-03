@@ -1,0 +1,1 @@
+.gitignore create-declaration-file.sh export-defaultProfile.js format/ index.d.ts index.js lib/ p/ package.json parse/ tsconfig.json types-private.ts types.ts typescript-readme.md

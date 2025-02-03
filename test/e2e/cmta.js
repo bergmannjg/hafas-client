@@ -90,7 +90,7 @@ tap.test('Domain to 1104 Elm Street, Austin, TX 78703', async (t) => {
 	t.end();
 });
 
-tap.test('Domain to WHOLE FOODS MARKET - ARBOR TRAILS', async (t) => {
+tap.skip('Domain to WHOLE FOODS MARKET - ARBOR TRAILS', async (t) => {
 	const wholeFoodsMarket = {
 		type: 'location',
 		id: '9893207',

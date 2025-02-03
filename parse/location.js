@@ -1,6 +1,11 @@
 import {parse} from 'qs';
 import get from 'lodash/get.js';
 
+/**
+ * @import {Location, Station, Stop} from "../types"
+ * @import {DefaultProfile} from "../types-private"
+ */
+
 const POI = 'P';
 const STATION = 'S';
 const ADDRESS = 'A';
@@ -14,10 +19,15 @@ const leadingZeros = /^0+/;
 // todo: l.gidL (e.g. `["A×de:15088:8013414"]`)
 // todo: `i` param in `lid` (e.g. `A=1@O=Zöberitz@X=12033455@Y=51504612@U=80@L=8013414@i=A×de:15088:8013414@`)
 
-const parseLocation = (ctx, l) => {
+/** @author Jürgen Bergmann
+ *  add paramter ...args */
+/** @type {DefaultProfile["parseLocation"]} */
+const parseLocation = (ctx, l, ...args) => {
 	const {profile, opt} = ctx;
 
 	const lid = parse(l.lid, {delimiter: '@'});
+
+	/** @type {Location} */
 	const res = {
 		type: 'location',
 		id: (l.extId || lid.L || '').replace(leadingZeros, '') || null,
@@ -46,10 +56,11 @@ const parseLocation = (ctx, l) => {
 			.map(s => profile.parseLocation(ctx, s))
 			.filter(stop => Boolean(stop));
 
+		/** @type {Station | Stop} */
 		const stop = {
-			type: l.isMainMast || subStops.length > 0
+			type: /** @type {'station'|'stop'} */(l.isMainMast || subStops.length > 0 // eslint-disable-line @stylistic/no-extra-parens
 				? 'station'
-				: 'stop',
+				: 'stop'),
 			id: res.id,
 			name: l.name || lid.O
 				? profile.parseStationName(ctx, l.name || lid.O)
@@ -59,7 +70,7 @@ const parseLocation = (ctx, l) => {
 				: null, // todo: remove `.id`
 		};
 		if (opt.subStops && subStops.length > 0) {
-			stop.stops = subStops;
+			/** @type {Station} */(stop).stops = subStops; // eslint-disable-line @stylistic/no-extra-parens
 		}
 
 		if ('pCls' in l) {
@@ -71,7 +82,7 @@ const parseLocation = (ctx, l) => {
 
 		const mMastLoc = locL[mMastLocX];
 		if (mMastLoc) {
-			stop.station = {
+			/** @type {Station} */(stop).station = { // eslint-disable-line @stylistic/no-extra-parens
 				...profile.parseLocation(ctx, mMastLoc),
 				type: 'station', // todo: this should be handled differently
 			};
@@ -83,7 +94,7 @@ const parseLocation = (ctx, l) => {
 				.filter(l => Boolean(l))
 				.map(l => profile.parseLocation(ctx, l))
 				.filter(loc => Boolean(loc))
-				.map(loc => loc.location);
+				.map(loc => /** @type Stop*/(loc).location); // eslint-disable-line @stylistic/no-extra-parens
 			if (entrances.length > 0) {
 				stop.entrances = entrances;
 			}
@@ -112,10 +123,10 @@ const parseLocation = (ctx, l) => {
 
 		const dhid = (byType('stop-dhid') || {}).text;
 		if (dhid) {
-			if (!stop.ids) {
-				stop.ids = {};
+			if (!(/** @type {Stop} */(stop).ids)) { // eslint-disable-line @stylistic/no-extra-parens
+				/** @type {Stop} */(stop).ids = {}; // eslint-disable-line @stylistic/no-extra-parens
 			}
-			stop.ids.dhid = dhid;
+			/** @type {Stop} */(stop).ids.dhid = dhid; // eslint-disable-line @stylistic/no-extra-parens
 		}
 
 		const otherIds = hints
@@ -127,11 +138,11 @@ const parseLocation = (ctx, l) => {
 			})
 			.filter(([src]) => src !== 'NULL');
 		if (otherIds.length > 0) {
-			if (!stop.ids) {
-				stop.ids = {};
+			if (!(/** @type {Stop} */(stop).ids)) { // eslint-disable-line @stylistic/no-extra-parens
+				/** @type {Stop} */(stop).ids = {}; // eslint-disable-line @stylistic/no-extra-parens
 			}
 			for (const [src, id] of otherIds) {
-				stop.ids[src] = id;
+				/** @type {Stop} */(stop).ids[src] = id; // eslint-disable-line @stylistic/no-extra-parens
 			}
 		}
 
@@ -153,6 +164,8 @@ const parseLocation = (ctx, l) => {
 // We use a "visited list" to prevent endless recursion.
 // todo: can we use a WeakMap here?
 const seen = Symbol('parseLocation seen items');
+
+/** @type {DefaultProfile["parseLocation"]} */
 const parseLocationWithoutCycles = (ctx, l, ...args) => {
 	if (ctx[seen] && ctx[seen].includes(l)) {
 		return null;
@@ -161,7 +174,7 @@ const parseLocationWithoutCycles = (ctx, l, ...args) => {
 	const newSeen = ctx[seen]
 		? [...ctx[seen], l]
 		: [l];
-	return parseLocation({...ctx, [seen]: newSeen}, l, ...args);
+	return parseLocation(/** @type {any} */({...ctx, [seen]: newSeen}), l, ...args); // eslint-disable-line @stylistic/no-extra-parens
 };
 
 export {

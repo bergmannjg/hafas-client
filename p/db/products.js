@@ -1,8 +1,13 @@
+/**
+ * @import {ProductType} from "../../types"
+ */
+
 // todo: https://gist.github.com/anonymous/d3323a5d2d6e159ed42b12afd0380434#file-haf_products-properties-L1-L95
+/** @type {ProductType []} */
 const products = [
 	{
 		id: 'nationalExpress',
-		mode: 'train',
+		mode: /** @type {'train'} */('train'), // eslint-disable-line @stylistic/no-extra-parens
 		bitmasks: [1],
 		name: 'InterCityExpress',
 		short: 'ICE',
@@ -10,7 +15,7 @@ const products = [
 	},
 	{
 		id: 'national',
-		mode: 'train',
+		mode: /** @type {'train'} */('train'), // eslint-disable-line @stylistic/no-extra-parens
 		bitmasks: [2],
 		name: 'InterCity & EuroCity',
 		short: 'IC/EC',
@@ -18,7 +23,7 @@ const products = [
 	},
 	{
 		id: 'regionalExpress',
-		mode: 'train',
+		mode: /** @type {'train'} */('train'), // eslint-disable-line @stylistic/no-extra-parens
 		bitmasks: [4],
 		name: 'RegionalExpress & InterRegio',
 		short: 'RE/IR',
@@ -26,7 +31,7 @@ const products = [
 	},
 	{
 		id: 'regional',
-		mode: 'train',
+		mode: /** @type {'train'} */('train'), // eslint-disable-line @stylistic/no-extra-parens
 		bitmasks: [8],
 		name: 'Regio',
 		short: 'RB',
@@ -34,7 +39,7 @@ const products = [
 	},
 	{
 		id: 'suburban',
-		mode: 'train',
+		mode: /** @type {'train'} */('train'), // eslint-disable-line @stylistic/no-extra-parens
 		bitmasks: [16],
 		name: 'S-Bahn',
 		short: 'S',
@@ -42,7 +47,7 @@ const products = [
 	},
 	{
 		id: 'bus',
-		mode: 'bus',
+		mode: /** @type {'bus'} */('bus'), // eslint-disable-line @stylistic/no-extra-parens
 		bitmasks: [32],
 		name: 'Bus',
 		short: 'B',
@@ -50,7 +55,7 @@ const products = [
 	},
 	{
 		id: 'ferry',
-		mode: 'watercraft',
+		mode: /** @type {'watercraft'} */('watercraft'), // eslint-disable-line @stylistic/no-extra-parens
 		bitmasks: [64],
 		name: 'Ferry',
 		short: 'F',
@@ -58,7 +63,7 @@ const products = [
 	},
 	{
 		id: 'subway',
-		mode: 'train',
+		mode: /** @type {'train'} */('train'), // eslint-disable-line @stylistic/no-extra-parens
 		bitmasks: [128],
 		name: 'U-Bahn',
 		short: 'U',
@@ -66,7 +71,7 @@ const products = [
 	},
 	{
 		id: 'tram',
-		mode: 'train',
+		mode: /** @type {'train'} */('train'), // eslint-disable-line @stylistic/no-extra-parens
 		bitmasks: [256],
 		name: 'Tram',
 		short: 'T',
@@ -74,7 +79,7 @@ const products = [
 	},
 	{
 		id: 'taxi',
-		mode: 'taxi',
+		mode: /** @type {'taxi'} */('taxi'), // eslint-disable-line @stylistic/no-extra-parens
 		bitmasks: [512],
 		name: 'Group Taxi',
 		short: 'Taxi',

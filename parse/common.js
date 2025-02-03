@@ -1,6 +1,12 @@
 import omit from 'lodash/omit.js';
 import {createFindInTree} from '../lib/find-in-tree.js';
 
+/**
+ * @import {Line} from "../types"
+ * @import {DefaultProfile} from "../types-private"
+ * @import {RawCommon} from "../types-raw-api"
+ */
+
 const findInTree = createFindInTree([
 	'**.oprX',
 	'**.icoX',
@@ -21,9 +27,10 @@ const findInTree = createFindInTree([
 
 // there are circular references (e.g. warning -> loc -> warning)
 // todo: parse either on-the-fly or in a recursive/iterative process
+/** @type {DefaultProfile["parseCommon"]} */
 const parseCommonData = (_ctx) => {
 	const {profile, opt, res} = _ctx;
-	const c = res.common || {};
+	const c = res.common || /** @type {RawCommon} */({}); // eslint-disable-line @stylistic/no-extra-parens
 	const matches = findInTree(res);
 
 	const common = {};
@@ -49,6 +56,7 @@ const parseCommonData = (_ctx) => {
 		});
 	}
 
+	/** @type {Array<Line>} */
 	common.lines = [];
 	if (Array.isArray(c.prodL)) {
 		common.lines = c.prodL.map(l => profile.parseLine(ctx, l));
